@@ -1,3 +1,7 @@
+console.log('SUPABASE URL:', supabaseUrl)
+console.log('SUPABASE KEY EXISTS:', !!supabaseAnonKey)
+
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
