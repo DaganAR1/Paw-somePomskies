@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase'
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Puppy, BlogPost, Parent, ScheduleEvent } from '../types';
@@ -93,13 +94,15 @@ const ImageUploader: React.FC<{
 };
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ 
-  puppies, setPuppies, 
-  parents, setParents,
-  schedule, setSchedule,
-  blogPosts, setBlogPosts,
   siteAssets, setSiteAssets,
   onBackToHome, onLogout 
 }) => {
+
+  const [puppies, setPuppies] = useState<Puppy[]>([]);
+  const [parents, setParents] = useState<Parent[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+
   const [activeTab, setActiveTab] = useState<'puppies' | 'parents' | 'schedule' | 'articles' | 'settings'>('puppies');
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [formData, setFormData] = useState<any>({});
@@ -119,6 +122,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+  fetchAll();
+}, []);
+
+const fetchAll = async () => {
+  const [dogsRes, parentsRes, littersRes, articlesRes] = await Promise.all([
+    supabase.from('dogs').select('*').order('created_at', { ascending: false }),
+    supabase.from('parent_dogs').select('*'),
+    supabase.from('litters').select('*'),
+    supabase.from('articles').select('*').order('created_at', { ascending: false })
+  ]);
+
+  setPuppies(dogsRes.data || []);
+  setParents(parentsRes.data || []);
+  setSchedule(littersRes.data || []);
+  setBlogPosts(articlesRes.data || []);
+};
+
+
+
   // --- Handlers ---
   const cancelEdit = () => { setEditingId(null); setFormData({}); };
 
@@ -135,30 +158,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (type === 'article') setFormData({ title: '', excerpt: '', category: 'News', date: new Date().toLocaleDateString(), content: [''] });
   };
 
-  const handleSave = () => {
-    if (activeTab === 'puppies') {
-      if (editingId === 'new') setPuppies([...puppies, { ...formData, id: Date.now().toString() }]);
-      else setPuppies(puppies.map(p => p.id === editingId ? formData : p));
-    } else if (activeTab === 'parents') {
-      if (editingId === 'new') setParents([...parents, { ...formData, id: 'p'+Date.now() }]);
-      else setParents(parents.map(p => p.id === editingId ? formData : p));
-    } else if (activeTab === 'schedule') {
-      if (editingId === 'new') setSchedule([...schedule, formData]);
-      else setSchedule(schedule.map(s => s.event === editingId ? formData : s));
-    } else if (activeTab === 'articles') {
-      if (editingId === 'new') setBlogPosts([{ ...formData, id: 'b'+Date.now() }, ...blogPosts]);
-      else setBlogPosts(blogPosts.map(a => a.id === editingId ? formData : a));
-    }
-    cancelEdit();
-  };
+ const handleSave = async () => {
+  let table = '';
 
-  const handleDelete = (id: string | number) => {
-    if (!window.confirm("Are you sure? This cannot be undone.")) return;
-    if (activeTab === 'puppies') setPuppies(puppies.filter(p => p.id !== id));
-    if (activeTab === 'parents') setParents(parents.filter(p => p.id !== id));
-    if (activeTab === 'schedule') setSchedule(schedule.filter(s => s.event !== id));
-    if (activeTab === 'articles') setBlogPosts(blogPosts.filter(a => a.id !== id));
-  };
+  if (activeTab === 'puppies') table = 'dogs';
+  if (activeTab === 'parents') table = 'parent_dogs';
+  if (activeTab === 'schedule') table = 'litters';
+  if (activeTab === 'articles') table = 'articles';
+
+  if (editingId === 'new') {
+    await supabase.from(table).insert(formData);
+  } else {
+    await supabase.from(table).update(formData).eq('id', editingId);
+  }
+
+  await fetchAll();
+  cancelEdit();
+};
+
+
+
+ const handleDelete = async (id: string | number) => {
+  if (!window.confirm('Are you sure?')) return;
+
+  let table = '';
+  if (activeTab === 'puppies') table = 'dogs';
+  if (activeTab === 'parents') table = 'parent_dogs';
+  if (activeTab === 'schedule') table = 'litters';
+  if (activeTab === 'articles') table = 'articles';
+
+  await supabase.from(table).delete().eq('id', id);
+  await fetchAll();
+};
+
+
 
   const saveSiteSettings = () => {
     setSiteAssets(tempAssets);
