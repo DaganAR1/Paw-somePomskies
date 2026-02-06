@@ -1,27 +1,25 @@
-import { supabase } from './supabaseClient'
-
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import About from './components/About';
-import Puppies from './components/Puppies';
-import Schedule from './components/Schedule';
-import BlogSection from './components/BlogSection';
-import Reviews from './components/Reviews';
-import Contact from './components/Contact';
-import AiAssistant from './components/AiAssistant';
-import AdoptionModal from './components/AdoptionModal';
-import PuppyGallery from './components/PuppyGallery';
-import PuppyProfile from './components/PuppyProfile';
-import MeetTheParents from './components/MeetTheParents';
-import AdminDashboard from './components/AdminDashboard';
-import AboutPage from './components/AboutPage';
-import SchedulePage from './components/SchedulePage';
-import BlogPage from './components/BlogPage';
-import BlogPostPage from './components/BlogPostPage';
-import ContactPage from './components/ContactPage';
-import WaitlistPage from './components/WaitlistPage';
-import AdminLoginModal from './components/AdminLoginModal';
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import About from '../components/About';
+import Puppies from '../components/Puppies';
+import Schedule from '../components/Schedule';
+import BlogSection from '../components/BlogSection';
+import Reviews from '../components/Reviews';
+import Contact from '../components/Contact';
+import AiAssistant from '../components/AiAssistant';
+import AdoptionModal from '../components/AdoptionModal';
+import PuppyGallery from '../components/PuppyGallery';
+import PuppyProfile from '../components/PuppyProfile';
+import MeetTheParents from '../components/MeetTheParents';
+import AdminDashboard from '../components/AdminDashboard';
+import AboutPage from '../components/AboutPage';
+import SchedulePage from '../components/SchedulePage';
+import BlogPage from '../components/BlogPage';
+import BlogPostPage from '../components/BlogPostPage';
+import ContactPage from '../components/ContactPage';
+import WaitlistPage from '../components/WaitlistPage';
+import AdminLoginModal from '../components/AdminLoginModal';
 import { 
   INITIAL_PUPPIES, 
   SITE_ASSETS as DEFAULT_ASSETS, 
@@ -31,8 +29,8 @@ import {
   SOCIAL_LINKS, 
   BREEDER_CONTACT_EMAIL,
   BREEDER_PHONE
-} from './constants';
-import { Puppy, BlogPost, Parent, ScheduleEvent } from './types';
+} from '../constants';
+import { Puppy, BlogPost, Parent, ScheduleEvent } from '../types';
 
 type View = 'home' | 'puppies' | 'puppy-profile' | 'parents' | 'about' | 'schedule' | 'blog' | 'article' | 'contact' | 'admin' | 'waitlist';
 
