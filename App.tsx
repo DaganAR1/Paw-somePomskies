@@ -1,3 +1,4 @@
+import { supabase } from './supabaseClient'
 
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
@@ -69,7 +70,7 @@ const App: React.FC = () => {
       }
     };
 
-    loadData('pawsome_puppies', setPuppies, INITIAL_PUPPIES);
+    
     loadData('pawsome_parents', setParents, INITIAL_PARENTS);
     loadData('pawsome_schedule', setSchedule, INITIAL_SCHEDULE);
     loadData('pawsome_blogs', setBlogPosts, INITIAL_BLOG_POSTS);
@@ -77,11 +78,25 @@ const App: React.FC = () => {
   }, []);
 
   // -- DATA SYNC ENGINE (SAVE) --
-  useEffect(() => { localStorage.setItem('pawsome_puppies', JSON.stringify(puppies)); }, [puppies]);
+   
   useEffect(() => { localStorage.setItem('pawsome_parents', JSON.stringify(parents)); }, [parents]);
   useEffect(() => { localStorage.setItem('pawsome_schedule', JSON.stringify(schedule)); }, [schedule]);
   useEffect(() => { localStorage.setItem('pawsome_blogs', JSON.stringify(blogPosts)); }, [blogPosts]);
   useEffect(() => { localStorage.setItem('pawsome_assets', JSON.stringify(siteAssets)); }, [siteAssets]);
+  useEffect(() => {
+  const loadPuppiesFromSupabase = async () => {
+    const { data, error } = await supabase
+      .from('dogs')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (!error && data) {
+      setPuppies(data)
+    }
+  }
+
+  loadPuppiesFromSupabase()
+}, [])
 
   const navigateTo = (view: View, id?: string) => {
     if (view === 'admin' && !isAdmin) { setIsLoginModalOpen(true); return; }
