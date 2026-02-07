@@ -166,7 +166,7 @@ const fetchAll = async () => {
   image_url: formData.image || null
 });
 
-
+alert('HANDLE SAVE FIRED');
 const handleSave = async () => {
   let table = '';
 
