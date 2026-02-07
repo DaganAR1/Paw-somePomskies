@@ -158,7 +158,7 @@ const fetchAll = async () => {
     if (type === 'article') setFormData({ title: '', excerpt: '', category: 'News', date: new Date().toLocaleDateString(), content: [''] });
   };
 
- const handleSave = async () => {
+const handleSave = async () => {
   let table = '';
 
   if (activeTab === 'puppies') table = 'dogs';
@@ -166,10 +166,19 @@ const fetchAll = async () => {
   if (activeTab === 'schedule') table = 'litters';
   if (activeTab === 'articles') table = 'articles';
 
+  let res;
+
   if (editingId === 'new') {
-    await supabase.from(table).insert(formData);
+    res = await supabase.from(table).insert(formData);
   } else {
-    await supabase.from(table).update(formData).eq('id', editingId);
+    res = await supabase.from(table).update(formData).eq('id', editingId);
+  }
+
+  console.log('SUPABASE SAVE RESPONSE:', res);
+
+  if (res.error) {
+    alert(res.error.message);
+    return;
   }
 
   await fetchAll();
