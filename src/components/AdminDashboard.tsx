@@ -158,6 +158,15 @@ const fetchAll = async () => {
     if (type === 'article') setFormData({ title: '', excerpt: '', category: 'News', date: new Date().toLocaleDateString(), content: [''] });
   };
 
+  const buildDogPayload = (formData: any) => ({
+  name: formData.name,
+  description: formData.description || null,
+  price: formData.price || null,
+  status: formData.status || 'available',
+  image_url: formData.image || null
+});
+
+
 const handleSave = async () => {
   let table = '';
 
@@ -168,11 +177,22 @@ const handleSave = async () => {
 
   let res;
 
-  if (editingId === 'new') {
-    res = await supabase.from(table).insert(formData);
-  } else {
-    res = await supabase.from(table).update(formData).eq('id', editingId);
-  }
+ if (editingId === 'new') {
+  const payload =
+    activeTab === 'puppies'
+      ? buildDogPayload(formData)
+      : formData;
+
+  res = await supabase.from(table).insert(payload);
+} else {
+  const payload =
+    activeTab === 'puppies'
+      ? buildDogPayload(formData)
+      : formData;
+
+  res = await supabase.from(table).update(payload).eq('id', editingId);
+}
+
 
   console.log('SUPABASE SAVE RESPONSE:', res);
 
