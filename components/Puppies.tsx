@@ -35,7 +35,7 @@ const Puppies: React.FC<PuppiesProps> = ({ puppies, onOpenAdoption, onViewPuppy,
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredPuppies.map((puppy) => (
+          {Array.isArray(puppies) && featuredPuppies.map((puppy) => (
             <div key={puppy.id} className="group bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100 transition-all hover:-translate-y-2 hover:shadow-2xl">
               <div className="relative h-80 overflow-hidden cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
                 <img 
@@ -53,8 +53,11 @@ const Puppies: React.FC<PuppiesProps> = ({ puppies, onOpenAdoption, onViewPuppy,
               </div>
               <div className="p-8">
                 <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
-                  <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{puppy.name}</h3>
-                  <span className="text-teal-600 font-bold">{puppy.age}</span>
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{puppy.name}</h3>
+                    <p className="text-teal-600 font-bold text-xs uppercase tracking-widest mt-1">{puppy.gender}</p>
+                  </div>
+                  <span className="text-slate-400 font-bold">{puppy.age}</span>
                 </div>
                 <p className="text-slate-500 mb-6 text-sm line-clamp-2">{puppy.description}</p>
                 <div className="grid grid-cols-2 gap-3">

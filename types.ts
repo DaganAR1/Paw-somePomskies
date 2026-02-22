@@ -24,6 +24,7 @@ export interface Parent {
 }
 
 export interface ScheduleEvent {
+  id?: string;
   period: string;
   event: string;
   date: string;

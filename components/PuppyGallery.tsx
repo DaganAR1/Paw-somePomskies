@@ -70,7 +70,7 @@ const PuppyGallery: React.FC<PuppyGalleryProps> = ({
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredPuppies.map((puppy) => (
+            {Array.isArray(filteredPuppies) && filteredPuppies.map((puppy) => (
               <div key={puppy.id} className="bg-white rounded-[2rem] overflow-hidden shadow-xl border border-slate-100 hover:shadow-2xl transition-all group">
                 <div className="relative h-72 overflow-hidden cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
                   <img 

@@ -34,7 +34,7 @@ const SchedulePage: React.FC<SchedulePageProps> = ({ schedule, onBackToHome, onN
           <div className="max-w-5xl mx-auto">
             <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
               <div className="divide-y divide-slate-100">
-                {schedule.map((item, idx) => (
+                {Array.isArray(schedule) && schedule.map((item, idx) => (
                   <div key={idx} className="p-10 md:p-14 hover:bg-slate-50 transition-colors">
                     {/* Responsive Stack: Cards on mobile, Row on desktop */}
                     <div className="flex flex-col md:flex-row items-center md:items-start lg:items-center gap-10 md:gap-16">
@@ -42,9 +42,11 @@ const SchedulePage: React.FC<SchedulePageProps> = ({ schedule, onBackToHome, onN
                       {/* Date Block */}
                       <div className="w-full md:w-1/4 text-center md:text-left border-b md:border-b-0 md:border-r border-slate-100 pb-8 md:pb-0">
                         <div className="text-teal-600 font-black text-[10px] uppercase tracking-[0.4em] mb-3">{item.period}</div>
-                        <div className="text-5xl font-black text-slate-900 tracking-tighter mb-1">{item.date.split(' ')[0]}</div>
+                        <div className="text-5xl font-black text-slate-900 tracking-tighter mb-1">
+                          {item.date && item.date.includes(' ') ? item.date.split(' ')[0] : (item.date || 'TBD')}
+                        </div>
                         <div className="text-slate-400 font-black uppercase tracking-[0.3em] text-[11px]">
-                          {item.date.split(' ').slice(1).join(' ')}
+                          {item.date && item.date.includes(' ') ? item.date.split(' ').slice(1).join(' ') : ''}
                         </div>
                       </div>
 

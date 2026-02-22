@@ -1,25 +1,26 @@
+
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import About from '../components/About';
-import Puppies from '../components/Puppies';
-import Schedule from '../components/Schedule';
-import BlogSection from '../components/BlogSection';
-import Reviews from '../components/Reviews';
-import Contact from '../components/Contact';
-import AiAssistant from '../components/AiAssistant';
-import AdoptionModal from '../components/AdoptionModal';
-import PuppyGallery from '../components/PuppyGallery';
-import PuppyProfile from '../components/PuppyProfile';
-import MeetTheParents from '../components/MeetTheParents';
-import AdminDashboard from '../components/AdminDashboard';
-import AboutPage from '../components/AboutPage';
-import SchedulePage from '../components/SchedulePage';
-import BlogPage from '../components/BlogPage';
-import BlogPostPage from '../components/BlogPostPage';
-import ContactPage from '../components/ContactPage';
-import WaitlistPage from '../components/WaitlistPage';
-import AdminLoginModal from '../components/AdminLoginModal';
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import About from './components/About';
+import Puppies from './components/Puppies';
+import Schedule from './components/Schedule';
+import BlogSection from './components/BlogSection';
+import Reviews from './components/Reviews';
+import Contact from './components/Contact';
+import AiAssistant from './components/AiAssistant';
+import AdoptionModal from './components/AdoptionModal';
+import PuppyGallery from './components/PuppyGallery';
+import PuppyProfile from './components/PuppyProfile';
+import MeetTheParents from './components/MeetTheParents';
+import AdminDashboard from './components/AdminDashboard';
+import AboutPage from './components/AboutPage';
+import SchedulePage from './components/SchedulePage';
+import BlogPage from './components/BlogPage';
+import BlogPostPage from './components/BlogPostPage';
+import ContactPage from './components/ContactPage';
+import WaitlistPage from './components/WaitlistPage';
+import AdminLoginModal from './components/AdminLoginModal';
 import { 
   INITIAL_PUPPIES, 
   SITE_ASSETS as DEFAULT_ASSETS, 
@@ -29,8 +30,9 @@ import {
   SOCIAL_LINKS, 
   BREEDER_CONTACT_EMAIL,
   BREEDER_PHONE
-} from '../constants';
-import { Puppy, BlogPost, Parent, ScheduleEvent } from '../types';
+} from './constants';
+import { Puppy, BlogPost, Parent, ScheduleEvent } from './types';
+import { dataService } from './services/dataService';
 
 type View = 'home' | 'puppies' | 'puppy-profile' | 'parents' | 'about' | 'schedule' | 'blog' | 'article' | 'contact' | 'admin' | 'waitlist';
 
@@ -50,6 +52,10 @@ const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adoptionInquiryName, setAdoptionInquiryName] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [lastError, setLastError] = useState<string | null>(null);
 
   // -- DATA SYNC ENGINE (LOAD) --
   useEffect(() => {
@@ -57,44 +63,126 @@ const App: React.FC = () => {
     const adminSession = sessionStorage.getItem('pawsome_admin_active');
     if (adminSession === 'true') setIsAdmin(true);
 
-    const loadData = (key: string, setter: any, defaultVal: any) => {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        try { 
-          setter(JSON.parse(saved)); 
-        } catch (e) { 
-          setter(defaultVal); 
+    const initData = async () => {
+      try {
+        const [p, par, s, b, a] = await Promise.all([
+          dataService.getPuppies(),
+          dataService.getParents(),
+          dataService.getSchedule(),
+          dataService.getBlogPosts(),
+          dataService.getSiteAssets()
+        ]);
+
+        setPuppies(p || []);
+        setParents(par || []);
+        setSchedule(s || []);
+        setBlogPosts(b || []);
+        if (a) {
+          setSiteAssets(prev => ({
+            ...prev,
+            ...a,
+            branding: { ...prev.branding, ...(a.branding || {}) },
+            sections: { ...prev.sections, ...(a.sections || {}) },
+            emailConfig: { ...prev.emailConfig, ...(a.emailConfig || {}) }
+          }));
         }
+      } catch (error) {
+        console.error('Error loading data from Supabase:', error);
+        // Fallback to localStorage if Supabase fails
+        const loadLocal = (key: string, setter: any, defaultVal: any) => {
+          const saved = localStorage.getItem(key);
+          if (saved) { try { setter(JSON.parse(saved)); } catch (e) { setter(defaultVal); } }
+        };
+        loadLocal('pawsome_puppies', setPuppies, INITIAL_PUPPIES);
+        loadLocal('pawsome_parents', setParents, INITIAL_PARENTS);
+        loadLocal('pawsome_schedule', setSchedule, INITIAL_SCHEDULE);
+        loadLocal('pawsome_blogs', setBlogPosts, INITIAL_BLOG_POSTS);
+        loadLocal('pawsome_assets', setSiteAssets, DEFAULT_ASSETS);
+      } finally {
+        setIsLoading(false);
+        setIsInitialLoadDone(true);
       }
     };
 
-    
-    loadData('pawsome_parents', setParents, INITIAL_PARENTS);
-    loadData('pawsome_schedule', setSchedule, INITIAL_SCHEDULE);
-    loadData('pawsome_blogs', setBlogPosts, INITIAL_BLOG_POSTS);
-    loadData('pawsome_assets', setSiteAssets, DEFAULT_ASSETS);
+    initData();
   }, []);
 
   // -- DATA SYNC ENGINE (SAVE) --
-   
-  useEffect(() => { localStorage.setItem('pawsome_parents', JSON.stringify(parents)); }, [parents]);
-  useEffect(() => { localStorage.setItem('pawsome_schedule', JSON.stringify(schedule)); }, [schedule]);
-  useEffect(() => { localStorage.setItem('pawsome_blogs', JSON.stringify(blogPosts)); }, [blogPosts]);
-  useEffect(() => { localStorage.setItem('pawsome_assets', JSON.stringify(siteAssets)); }, [siteAssets]);
-  useEffect(() => {
-  const loadPuppiesFromSupabase = async () => {
-    const { data, error } = await supabase
-      .from('dogs')
-      .select('*')
-      .order('created_at', { ascending: true })
-
-    if (!error && data) {
-      setPuppies(data)
+  // We only save to Supabase if the initial load is done to avoid overwriting with defaults
+  useEffect(() => { 
+    if (isInitialLoadDone) {
+      setSyncStatus('saving');
+      dataService.savePuppies(puppies)
+        .then(() => setSyncStatus('idle'))
+        .catch(err => {
+          console.error(err);
+          setSyncStatus('error');
+          setLastError(err.message || 'Failed to save puppies');
+        });
+      localStorage.setItem('pawsome_puppies', JSON.stringify(puppies)); 
     }
-  }
+  }, [puppies, isInitialLoadDone]);
 
-  loadPuppiesFromSupabase()
-}, [])
+  useEffect(() => { 
+    if (isInitialLoadDone) {
+      setSyncStatus('saving');
+      dataService.saveParents(parents)
+        .then(() => setSyncStatus('idle'))
+        .catch(err => {
+          console.error(err);
+          setSyncStatus('error');
+          setLastError(err.message || 'Failed to save parents');
+        });
+      localStorage.setItem('pawsome_parents', JSON.stringify(parents)); 
+    }
+  }, [parents, isInitialLoadDone]);
+
+  useEffect(() => { 
+    if (isInitialLoadDone) {
+      setSyncStatus('saving');
+      dataService.saveSchedule(schedule)
+        .then(() => setSyncStatus('idle'))
+        .catch(err => {
+          console.error(err);
+          setSyncStatus('error');
+          setLastError(err.message || 'Failed to save schedule');
+        });
+      localStorage.setItem('pawsome_schedule', JSON.stringify(schedule)); 
+    }
+  }, [schedule, isInitialLoadDone]);
+
+  useEffect(() => { 
+    if (isInitialLoadDone) {
+      setSyncStatus('saving');
+      dataService.saveBlogPosts(blogPosts)
+        .then(() => setSyncStatus('idle'))
+        .catch(err => {
+          console.error(err);
+          setSyncStatus('error');
+          setLastError(err.message || 'Failed to save blog posts');
+        });
+      localStorage.setItem('pawsome_blogs', JSON.stringify(blogPosts)); 
+    }
+  }, [blogPosts, isInitialLoadDone]);
+
+  useEffect(() => { 
+    if (isInitialLoadDone) {
+      setSyncStatus('saving');
+      dataService.saveSiteAssets(siteAssets)
+        .then(() => {
+          setSyncStatus('idle');
+          if (siteAssets.emailConfig) {
+            localStorage.setItem('pawsome_email_config', JSON.stringify(siteAssets.emailConfig));
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setSyncStatus('error');
+          setLastError(err.message || 'Failed to save site assets');
+        });
+      localStorage.setItem('pawsome_assets', JSON.stringify(siteAssets)); 
+    }
+  }, [siteAssets, isInitialLoadDone]);
 
   const navigateTo = (view: View, id?: string) => {
     if (view === 'admin' && !isAdmin) { setIsLoginModalOpen(true); return; }
@@ -119,6 +207,17 @@ const App: React.FC = () => {
 
   const selectedArticle = selectedArticleId ? blogPosts.find(p => p.id === selectedArticleId) : null;
   const selectedPuppy = selectedPuppyId ? puppies.find(p => p.id === selectedPuppyId) : null;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-teal-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-teal-400 font-black uppercase tracking-widest text-xs">Connecting to Cloud...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -157,7 +256,7 @@ const App: React.FC = () => {
               onReadArticle={(id) => navigateTo('article', id)}
             />
             <Reviews />
-            <Contact />
+            <Contact puppies={puppies} />
           </main>
         )}
 
@@ -206,6 +305,8 @@ const App: React.FC = () => {
             siteAssets={siteAssets} setSiteAssets={setSiteAssets}
             onBackToHome={() => navigateTo('home')} 
             onLogout={handleLogout}
+            syncStatus={syncStatus}
+            lastError={lastError}
           />
         )}
 
@@ -213,7 +314,7 @@ const App: React.FC = () => {
         {currentView === 'about' && <AboutPage image={siteAssets.sections.aboutMain} onBackToHome={() => navigateTo('home')} />}
         {currentView === 'blog' && <BlogPage blogPosts={blogPosts} onBackToHome={() => navigateTo('home')} onReadArticle={(id) => navigateTo('article', id)} />}
         {currentView === 'article' && selectedArticle && <BlogPostPage post={selectedArticle} onBackToBlog={() => navigateTo('blog')} />}
-        {currentView === 'contact' && <ContactPage onBackToHome={() => navigateTo('home')} />}
+        {currentView === 'contact' && <ContactPage puppies={puppies} onBackToHome={() => navigateTo('home')} />}
         {currentView === 'waitlist' && <WaitlistPage onBackToHome={() => navigateTo('home')} />}
       </div>
 

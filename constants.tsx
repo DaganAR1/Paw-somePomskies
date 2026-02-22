@@ -20,6 +20,11 @@ export const SITE_ASSETS = {
   sections: {
     heroBackground: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=2000',
     aboutMain: 'https://images.unsplash.com/photo-1593134257782-e89567b7718a?auto=format&fit=crop&q=80&w=1200',
+  },
+  emailConfig: {
+    serviceId: '',
+    templateId: '',
+    publicKey: ''
   }
 };
 

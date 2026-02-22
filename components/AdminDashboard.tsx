@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabase'
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Puppy, BlogPost, Parent, ScheduleEvent } from '../types';
@@ -17,6 +16,8 @@ interface AdminDashboardProps {
   setSiteAssets: (assets: typeof DEFAULT_ASSETS) => void;
   onBackToHome: () => void;
   onLogout: () => void;
+  syncStatus?: 'idle' | 'saving' | 'error';
+  lastError?: string | null;
 }
 
 const ImageUploader: React.FC<{
@@ -94,53 +95,20 @@ const ImageUploader: React.FC<{
 };
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ 
+  puppies, setPuppies, 
+  parents, setParents,
+  schedule, setSchedule,
+  blogPosts, setBlogPosts,
   siteAssets, setSiteAssets,
-  onBackToHome, onLogout 
+  onBackToHome, onLogout,
+  syncStatus = 'idle', lastError = null
 }) => {
-
-  const [puppies, setPuppies] = useState<Puppy[]>([]);
-  const [parents, setParents] = useState<Parent[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-
   const [activeTab, setActiveTab] = useState<'puppies' | 'parents' | 'schedule' | 'articles' | 'settings'>('puppies');
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [formData, setFormData] = useState<any>({});
   
   // Local Temp State for Site Settings
   const [tempAssets, setTempAssets] = useState(siteAssets);
-  const [emailConfig, setEmailConfig] = useState({
-    serviceId: '',
-    templateId: '',
-    publicKey: ''
-  });
-
-  useEffect(() => {
-    const saved = localStorage.getItem('pawsome_email_config');
-    if (saved) {
-      try { setEmailConfig(JSON.parse(saved)); } catch (e) {}
-    }
-  }, []);
-
-  useEffect(() => {
-  fetchAll();
-}, []);
-
-const fetchAll = async () => {
-  const [dogsRes, parentsRes, littersRes, articlesRes] = await Promise.all([
-    supabase.from('dogs').select('*').order('created_at', { ascending: false }),
-    supabase.from('parent_dogs').select('*'),
-    supabase.from('litters').select('*'),
-    supabase.from('articles').select('*').order('created_at', { ascending: false })
-  ]);
-
-  setPuppies(dogsRes.data || []);
-  setParents(parentsRes.data || []);
-  setSchedule(littersRes.data || []);
-  setBlogPosts(articlesRes.data || []);
-};
-
-
 
   // --- Handlers ---
   const cancelEdit = () => { setEditingId(null); setFormData({}); };
@@ -152,79 +120,42 @@ const fetchAll = async () => {
 
   const startNew = (type: string) => {
     setEditingId('new');
-    if (type === 'puppy') setFormData({ name: '', gender: 'Female', status: 'Available', age: '8 Weeks', image: '', description: '' });
+    if (type === 'puppy') setFormData({ name: '', gender: 'Female', status: 'Available', age: '8 Weeks', image: '', description: '', coatColor: '', eyeColor: '', weight: '' });
     if (type === 'parent') setFormData({ name: '', role: 'Sire', breed: 'F1 Pomsky', weight: '15 lbs', image: '', description: '' });
-    if (type === 'schedule') setFormData({ period: 'Seasonal', event: '', date: 'TBD', details: '' });
+    if (type === 'schedule') setFormData({ id: 's' + Date.now(), period: 'Seasonal', event: '', date: 'TBD', details: '' });
     if (type === 'article') setFormData({ title: '', excerpt: '', category: 'News', date: new Date().toLocaleDateString(), content: [''] });
   };
 
-  const buildDogPayload = (formData: any) => ({
-  name: formData.name,
-  description: formData.description || null,
-  price: formData.price || null,
-  status: formData.status || 'available',
-  image_url: formData.image || null
-});
+  const handleSave = () => {
+    if (activeTab === 'puppies') {
+      if (editingId === 'new') setPuppies([...puppies, { ...formData, id: Date.now().toString() }]);
+      else setPuppies(puppies.map(p => p.id === editingId ? formData : p));
+    } else if (activeTab === 'parents') {
+      if (editingId === 'new') setParents([...parents, { ...formData, id: 'p'+Date.now() }]);
+      else setParents(parents.map(p => p.id === editingId ? formData : p));
+    } else if (activeTab === 'schedule') {
+      if (editingId === 'new') setSchedule([...schedule, formData]);
+      else setSchedule(schedule.map(s => (s.id === editingId || s.event === editingId) ? formData : s));
+    } else if (activeTab === 'articles') {
+      if (editingId === 'new') setBlogPosts([{ ...formData, id: 'b'+Date.now() }, ...blogPosts]);
+      else setBlogPosts(blogPosts.map(a => a.id === editingId ? formData : a));
+    }
+    cancelEdit();
+  };
 
-alert('HANDLE SAVE FIRED');
-const handleSave = async () => {
-  let table = '';
-
-  if (activeTab === 'puppies') table = 'dogs';
-  if (activeTab === 'parents') table = 'parent_dogs';
-  if (activeTab === 'schedule') table = 'litters';
-  if (activeTab === 'articles') table = 'articles';
-
-  let res;
-
- if (editingId === 'new') {
-  const payload =
-    activeTab === 'puppies'
-      ? buildDogPayload(formData)
-      : formData;
-
-  res = await supabase.from(table).insert(payload);
-} else {
-  const payload =
-    activeTab === 'puppies'
-      ? buildDogPayload(formData)
-      : formData;
-
-  res = await supabase.from(table).update(payload).eq('id', editingId);
-}
-
-
-  console.log('SUPABASE SAVE RESPONSE:', res);
-
-  if (res.error) {
-    alert(res.error.message);
-    return;
-  }
-
-  await fetchAll();
-  cancelEdit();
-};
-
-
-
- const handleDelete = async (id: string | number) => {
-  if (!window.confirm('Are you sure?')) return;
-
-  let table = '';
-  if (activeTab === 'puppies') table = 'dogs';
-  if (activeTab === 'parents') table = 'parent_dogs';
-  if (activeTab === 'schedule') table = 'litters';
-  if (activeTab === 'articles') table = 'articles';
-
-  await supabase.from(table).delete().eq('id', id);
-  await fetchAll();
-};
-
-
+  const handleDelete = (id: string | number) => {
+    if (!window.confirm("Are you sure? This cannot be undone.")) return;
+    if (activeTab === 'puppies') setPuppies(puppies.filter(p => p.id !== id));
+    if (activeTab === 'parents') setParents(parents.filter(p => p.id !== id));
+    if (activeTab === 'schedule') setSchedule(schedule.filter(s => s.id !== id && s.event !== id));
+    if (activeTab === 'articles') setBlogPosts(blogPosts.filter(a => a.id !== id));
+  };
 
   const saveSiteSettings = () => {
     setSiteAssets(tempAssets);
-    localStorage.setItem('pawsome_email_config', JSON.stringify(emailConfig));
+    if (tempAssets.emailConfig) {
+      localStorage.setItem('pawsome_email_config', JSON.stringify(tempAssets.emailConfig));
+    }
     alert("Site appearance and Email settings saved!");
   };
 
@@ -276,10 +207,29 @@ const handleSave = async () => {
       <div className="flex-grow p-8 md:p-16 overflow-y-auto max-h-screen">
         <header className="flex justify-between items-center mb-12">
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tight">
-              Manage {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-            </h2>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-4xl font-black uppercase tracking-tight">
+                Manage {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              </h2>
+              {syncStatus === 'saving' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-teal-800/50 rounded-full border border-teal-700">
+                  <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-teal-400">Syncing...</span>
+                </div>
+              )}
+              {syncStatus === 'error' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-red-900/50 rounded-full border border-red-800">
+                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-400" title={lastError || 'Unknown Error'}>Sync Error</span>
+                </div>
+              )}
+            </div>
             <p className="text-teal-500 font-medium mt-1">Directly control what visitors see on your website.</p>
+            {syncStatus === 'error' && lastError && (
+              <p className="text-red-400 text-[10px] font-bold mt-2 bg-red-950/30 p-2 rounded-lg border border-red-900/30">
+                ⚠️ {lastError}. Check your Supabase table schema (missing columns?).
+              </p>
+            )}
           </div>
           {activeTab !== 'settings' && (
             <button 
@@ -303,38 +253,38 @@ const handleSave = async () => {
 
             <div className="bg-teal-900/30 p-10 rounded-[2.5rem] border border-teal-800">
               <h3 className="text-xl font-black mb-8 uppercase tracking-widest text-teal-400">Email Integration (EmailJS)</h3>
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Service ID</label>
-                  <input 
-                    className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
-                    value={emailConfig.serviceId} 
-                    onChange={e => setEmailConfig({...emailConfig, serviceId: e.target.value})} 
-                    placeholder="service_xxxxxxxx" 
-                  />
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Service ID</label>
+                    <input 
+                      className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
+                      value={tempAssets.emailConfig?.serviceId || ''} 
+                      onChange={e => setTempAssets({...tempAssets, emailConfig: {...(tempAssets.emailConfig || {serviceId: '', templateId: '', publicKey: ''}), serviceId: e.target.value}})} 
+                      placeholder="service_xxxxxxxx" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Template ID</label>
+                    <input 
+                      className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
+                      value={tempAssets.emailConfig?.templateId || ''} 
+                      onChange={e => setTempAssets({...tempAssets, emailConfig: {...(tempAssets.emailConfig || {serviceId: '', templateId: '', publicKey: ''}), templateId: e.target.value}})} 
+                      placeholder="template_xxxxxxxx" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Public Key</label>
+                    <input 
+                      className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
+                      value={tempAssets.emailConfig?.publicKey || ''} 
+                      onChange={e => setTempAssets({...tempAssets, emailConfig: {...(tempAssets.emailConfig || {serviceId: '', templateId: '', publicKey: ''}), publicKey: e.target.value}})} 
+                      placeholder="user_xxxxxxxx" 
+                    />
+                  </div>
+                  <p className="text-[9px] text-teal-600 font-bold leading-relaxed mt-4 italic text-center">
+                    * Adoption inquiries will be routed through this service.
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Template ID</label>
-                  <input 
-                    className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
-                    value={emailConfig.templateId} 
-                    onChange={e => setEmailConfig({...emailConfig, templateId: e.target.value})} 
-                    placeholder="template_xxxxxxxx" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase text-teal-600 tracking-widest">Public Key</label>
-                  <input 
-                    className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none text-white font-mono text-sm" 
-                    value={emailConfig.publicKey} 
-                    onChange={e => setEmailConfig({...emailConfig, publicKey: e.target.value})} 
-                    placeholder="user_xxxxxxxx" 
-                  />
-                </div>
-                <p className="text-[9px] text-teal-600 font-bold leading-relaxed mt-4 italic text-center">
-                  * Adoption inquiries will be routed through this service.
-                </p>
-              </div>
             </div>
 
             <div className="lg:col-span-2 bg-teal-900/30 p-10 rounded-[2.5rem] border border-teal-800">
@@ -360,8 +310,9 @@ const handleSave = async () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-teal-800/50">
-                {(activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'schedule' ? schedule : blogPosts).map((item: any, idx: number) => (
-                  <tr key={item.id || item.event} className="hover:bg-teal-900/20 transition-colors">
+                {Array.isArray(activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'schedule' ? schedule : blogPosts) && 
+                 (activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'schedule' ? schedule : blogPosts).map((item: any, idx: number) => (
+                  <tr key={item?.id || item?.event || idx} className="hover:bg-teal-900/20 transition-colors">
                     <td className="px-10 py-6">
                       {item.image ? (
                         <img src={item.image} className="w-20 h-20 rounded-2xl object-cover border border-teal-800 shadow-xl" />
@@ -372,7 +323,7 @@ const handleSave = async () => {
                     <td className="px-10 py-6">
                       <p className="font-black text-xl text-white tracking-tight uppercase">{item.name || item.title || item.event}</p>
                       <p className="text-teal-500 text-xs font-bold mt-1">
-                        {item.status || item.role || item.period || item.category} • {item.age || item.breed || item.date}
+                        {item.status || item.role || item.period || item.category} • {item.gender ? `${item.gender} • ` : ''}{item.age || item.breed || item.date}
                       </p>
                     </td>
                     <td className="px-10 py-6 text-right">
@@ -410,20 +361,44 @@ const handleSave = async () => {
                 <div className="space-y-8">
                   <ImageUploader label="Profile Image" currentImage={formData.image} onImageChange={(b) => setFormData({...formData, image: b})} />
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Name / Title</label>
-                      <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.name || formData.title || formData.event || ''} onChange={e => setFormData({...formData, [activeTab === 'schedule' ? 'event' : activeTab === 'articles' ? 'title' : 'name']: e.target.value})} />
-                    </div>
-                    {activeTab === 'puppies' && (
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Status</label>
-                        <select className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as any})}>
-                          <option value="Available">Available</option><option value="Reserved">Reserved</option><option value="Adopted">Adopted</option>
-                        </select>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Name / Title</label>
+                        <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.name || formData.title || formData.event || ''} onChange={e => setFormData({...formData, [activeTab === 'schedule' ? 'event' : activeTab === 'articles' ? 'title' : 'name']: e.target.value})} />
                       </div>
-                    )}
-                    {activeTab === 'parents' && (
+                      {activeTab === 'puppies' && (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Status</label>
+                            <select className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as any})}>
+                              <option value="Available">Available</option><option value="Reserved">Reserved</option><option value="Adopted">Adopted</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Gender</label>
+                            <select className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value as any})}>
+                              <option value="Male">Male</option><option value="Female">Female</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Age</label>
+                            <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} placeholder="e.g. 8 Weeks" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Coat Color</label>
+                            <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.coatColor || ''} onChange={e => setFormData({...formData, coatColor: e.target.value})} placeholder="e.g. Husky Grey" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Eye Color</label>
+                            <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.eyeColor || ''} onChange={e => setFormData({...formData, eyeColor: e.target.value})} placeholder="e.g. Double Blue" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Weight</label>
+                            <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.weight || ''} onChange={e => setFormData({...formData, weight: e.target.value})} placeholder="e.g. 4 lbs" />
+                          </div>
+                        </>
+                      )}
+                      {activeTab === 'parents' && (
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Role</label>
                         <select className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})}>
@@ -437,7 +412,7 @@ const handleSave = async () => {
                 <div className="space-y-8">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Description / Details</label>
-                    <textarea rows={10} className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-3xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.description || formData.details || (formData.content ? formData.content.join('\n\n') : '')} onChange={e => {
+                    <textarea rows={10} className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-3xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.description || formData.details || (Array.isArray(formData.content) ? formData.content.join('\n\n') : '')} onChange={e => {
                       if (activeTab === 'articles') setFormData({...formData, content: e.target.value.split('\n\n')});
                       else if (activeTab === 'schedule') setFormData({...formData, details: e.target.value});
                       else setFormData({...formData, description: e.target.value});

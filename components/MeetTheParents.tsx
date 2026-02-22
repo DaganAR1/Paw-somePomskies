@@ -50,7 +50,7 @@ const MeetTheParents: React.FC<MeetTheParentsProps> = ({ parents, onBackToHome, 
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            {parents.map((parent) => (
+            {Array.isArray(parents) && parents.map((parent) => (
               <div key={parent.id} className="bg-white rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 transition-all hover:shadow-2xl">
                 <div className="relative h-96 overflow-hidden">
                   <img src={parent.image} alt={parent.name} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />

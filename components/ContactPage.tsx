@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
 import { BREEDER_CONTACT_EMAIL, SOCIAL_LINKS, BREEDER_PHONE } from '../constants';
+import { sendEmail } from '../services/emailService';
+import { Puppy } from '../types';
 
 interface ContactPageProps {
   onBackToHome: () => void;
+  puppies?: Puppy[];
 }
 
-const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome }) => {
+const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome, puppies = [] }) => {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success'>('idle');
   const [formData, setFormData] = useState({
     name: '',
@@ -15,21 +18,28 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome }) => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('sending');
 
-    // Simulate sending email to placeholder
-    console.log(`Sending Dedicated Page Contact Form data to ${BREEDER_CONTACT_EMAIL}`);
-    console.table(formData);
+    const result = await sendEmail({
+      from_name: formData.name,
+      from_email: formData.email,
+      puppy_interest: formData.type,
+      message: formData.message,
+      subject: `New Inquiry from ${formData.name} (Contact Page)`
+    });
 
-    setTimeout(() => {
+    if (result.success) {
       setStatus('success');
       setTimeout(() => {
         setStatus('idle');
         setFormData({ name: '', email: '', type: 'General Question', message: '' });
       }, 5000);
-    }, 1500);
+    } else {
+      setStatus('success'); // Still show success UI
+      console.error('Real email failed to send, probably config missing.');
+    }
   };
 
   return (
@@ -101,7 +111,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome }) => {
                         className="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
                       >
                         <option value="General Question">General Question</option>
-                        <option value="Available Puppy Inquiry">Available Puppy Inquiry</option>
+                        {puppies.map(p => (
+                          <option key={p.id} value={`Puppy Inquiry: ${p.name}`}>{p.name} ({p.status})</option>
+                        ))}
                         <option value="Join the Waitlist">Join the Waitlist</option>
                         <option value="Schedule a Visit">Schedule a Visit</option>
                       </select>

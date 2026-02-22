@@ -31,7 +31,7 @@ const Schedule: React.FC<ScheduleProps> = ({ schedule, onJoinWaitlist }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-teal-800/50">
-                {schedule.map((item, idx) => (
+                {Array.isArray(schedule) && schedule.map((item, idx) => (
                   <tr key={idx} className="hover:bg-teal-900/30 transition-colors">
                     <td className="px-10 py-8 font-black text-xl text-teal-50">{item.period}</td>
                     <td className="px-10 py-8">
@@ -52,7 +52,7 @@ const Schedule: React.FC<ScheduleProps> = ({ schedule, onJoinWaitlist }) => {
 
           {/* Mobile Version: Card-based layout for small screens */}
           <div className="md:hidden space-y-6">
-            {schedule.map((item, idx) => (
+            {Array.isArray(schedule) && schedule.map((item, idx) => (
               <div key={idx} className="bg-teal-900/40 border border-teal-800 rounded-[2rem] p-8 space-y-6 shadow-xl">
                 <div className="flex justify-between items-center pb-4 border-b border-teal-800/50">
                   <span className="text-teal-400 text-[10px] font-black uppercase tracking-[0.2em]">{item.period}</span>

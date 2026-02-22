@@ -31,7 +31,7 @@ const BlogSection: React.FC<BlogSectionProps> = ({ blogPosts, onViewAll, onReadA
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {blogPosts.slice(0, 3).map((post) => (
+          {Array.isArray(blogPosts) && blogPosts.slice(0, 3).map((post) => (
             <article key={post.id} className="group cursor-pointer" onClick={() => onReadArticle(post.id)}>
               <div className="relative h-64 overflow-hidden rounded-[2rem] mb-6 shadow-xl border border-slate-100">
                 <img 

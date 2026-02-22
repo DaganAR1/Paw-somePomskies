@@ -2,8 +2,13 @@
 import React, { useState } from 'react';
 import { BREEDER_CONTACT_EMAIL } from '../constants';
 import { sendEmail } from '../services/emailService';
+import { Puppy } from '../types';
 
-const Contact: React.FC = () => {
+interface ContactProps {
+  puppies?: Puppy[];
+}
+
+const Contact: React.FC<ContactProps> = ({ puppies = [] }) => {
   const [tab, setTab] = useState<'form' | 'map'>('form');
   const [status, setStatus] = useState<'idle' | 'sending' | 'success'>('idle');
   const [formData, setFormData] = useState({
@@ -81,9 +86,9 @@ const Contact: React.FC = () => {
                     <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Preferred Puppy</label>
                     <select value={formData.puppy} onChange={(e) => setFormData({...formData, puppy: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500">
                       <option value="General Inquiry">Select a puppy (optional)</option>
-                      <option value="Luna">Luna</option>
-                      <option value="Koda">Koda</option>
-                      <option value="Bella">Bella</option>
+                      {puppies.map(p => (
+                        <option key={p.id} value={p.name}>{p.name} ({p.status})</option>
+                      ))}
                       <option value="Waitlist">Waitlist Inquiries</option>
                     </select>
                   </div>
