@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Paw-some Pomskies | Premium Pomsky Breeder in North Texas</title>
+    
+    <script>
+      // Prevent libraries from crashing when trying to overwrite fetch in restricted environments
+      (function() {
+        try {
+          const originalFetch = window.fetch;
+          if (originalFetch) {
+            Object.defineProperty(window, 'fetch', {
+              get: function() { return originalFetch; },
+              set: function() { console.warn('Blocked attempt to overwrite window.fetch'); },
+              configurable: true
+            });
+          }
+        } catch (e) {
+          // If we can't redefine it, we just hope for the best
+        }
+      })();
+    </script>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Paw-some Pomskies is a premier boutique breeder in Frisco, North Texas. Specializing in healthy, socialized, and DNA-tested Pomsky puppies from champion lines.">
+    <meta name="keywords" content="Pomsky breeder Texas, Pomsky puppies for sale, Frisco Pomskies, Pawsome Pomskies, healthy pomsky breeder, blue eyed pomsky">
+    <meta name="author" content="Paw-some Pomskies">
+    <link rel="canonical" href="https://pawsomepomskies.com/">
+    <link rel="icon" type="image/png" href="">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pawsomepomskies.com/">
+    <meta property="og:title" content="Paw-some Pomskies | Premium Boutique Breeder">
+    <meta property="og:description" content="Find your perfect Pawsome companion. Ethical breeding, health-tested parents, and well-socialized puppies in the heart of Texas.">
+    <meta property="og:image" content="https://i.ibb.co/VWVhPqD/pawsome-texas-logo.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pawsomepomskies.com/">
+    <meta property="twitter:title" content="Paw-some Pomskies | Premium Boutique Breeder">
+    <meta property="twitter:description" content="Find your perfect Pawsome companion. Ethical breeding and health-tested parents.">
+    <meta property="twitter:image" content="https://i.ibb.co/VWVhPqD/pawsome-texas-logo.png">
+
+    <!-- Structured Data (JSON-LD) for Local Business -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "DogBreeder",
+      "name": "Paw-some Pomskies",
+      "image": "https://i.ibb.co/VWVhPqD/pawsome-texas-logo.png",
+      "description": "Premium boutique breeder of healthy, socialized Pomskies in Frisco, North Texas.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Frisco",
+        "addressRegion": "TX",
+        "addressCountry": "US"
+      },
+      "url": "https://pawsomepomskies.com/",
+      "telephone": "+1-214-585-2519",
+      "priceRange": "$$$"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
