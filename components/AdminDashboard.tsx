@@ -481,46 +481,44 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
         ) : (
-          <div className="bg-teal-900/20 rounded-[3rem] border border-teal-800 overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-teal-900/40 border-b border-teal-800">
-                <tr>
-                  <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-teal-500">Preview</th>
-                  <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-teal-500">Details</th>
-                  <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-teal-500 text-right">Control</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-teal-800/50">
-                {Array.isArray(activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'guardian' ? guardianDogs : activeTab === 'schedule' ? schedule : blogPosts) && 
-                 (activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'guardian' ? guardianDogs : activeTab === 'schedule' ? schedule : blogPosts).map((item: any, idx: number) => (
-                  <tr key={item?.id || item?.event || idx} className="hover:bg-teal-900/20 transition-colors">
-                    <td className="px-10 py-6">
-                      {item.image ? (
-                        <img src={item.image} className="w-20 h-20 rounded-2xl object-cover border border-teal-800 shadow-xl" />
-                      ) : (
-                        <div className="w-20 h-20 rounded-2xl bg-teal-900/40 flex items-center justify-center text-2xl">?</div>
-                      )}
-                    </td>
-                    <td className="px-10 py-6">
-                      <p className="font-black text-xl text-white tracking-tight uppercase">{item.name || item.title || item.event}</p>
-                      <p className="text-teal-500 text-xs font-bold mt-1">
-                        {item.status || item.role || item.period || item.category} • {item.gender || item.role} • {item.age || item.breed || item.date}
-                      </p>
-                    </td>
-                    <td className="px-10 py-6 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => startEdit(activeTab.slice(0, -1), item)} className="p-3 bg-teal-800/40 text-teal-400 rounded-xl hover:bg-teal-800 transition-colors">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                        </button>
-                        <button onClick={() => handleDelete(item.id || item.event)} className="p-3 bg-red-950/40 text-red-400 rounded-xl hover:bg-red-900/40 transition-colors">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {(activeTab === 'puppies' ? puppies : activeTab === 'parents' ? parents : activeTab === 'guardian' ? guardianDogs : activeTab === 'schedule' ? schedule : blogPosts).map((item: any, idx: number) => (
+              <div key={item?.id || item?.event || idx} className="bg-teal-900/30 border border-teal-800 rounded-3xl overflow-hidden flex flex-col">
+                {/* Image */}
+                <div className="h-40 bg-teal-950/40 flex items-center justify-center overflow-hidden">
+                  {item.image ? (
+                    <img src={item.image} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-4xl">?</span>
+                  )}
+                </div>
+                {/* Details */}
+                <div className="p-4 flex-grow">
+                  <p className="font-black text-base text-white tracking-tight uppercase leading-tight">{item.name || item.title || item.event}</p>
+                  <p className="text-teal-500 text-[11px] font-bold mt-1">
+                    {[item.status || item.period || item.category, item.gender || item.role, item.age || item.breed || item.date].filter(Boolean).join(' • ')}
+                  </p>
+                </div>
+                {/* Actions */}
+                <div className="flex border-t border-teal-800">
+                  <button
+                    onClick={() => startEdit(activeTab.slice(0, -1), item)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 text-teal-400 hover:bg-teal-800/40 transition-colors font-black text-[10px] uppercase tracking-widest"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    Edit
+                  </button>
+                  <div className="w-px bg-teal-800" />
+                  <button
+                    onClick={() => handleDelete(item.id || item.event)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 text-red-400 hover:bg-red-950/40 transition-colors font-black text-[10px] uppercase tracking-widest"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
