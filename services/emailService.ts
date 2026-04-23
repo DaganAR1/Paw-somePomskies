@@ -7,11 +7,22 @@ export async function sendEmail(fields: Record<string, any>) {
     return { success: false, error: 'Missing access key' };
   }
 
+  // Web3Forms requires the submitter email to be in a field named "email".
+  // Our components send it as "from_email", so we remap it here.
+  const { from_email, ...rest } = fields;
+
+  const payload = {
+    access_key: accessKey,
+    botcheck: '',          // honeypot — must be empty for spam protection
+    ...(from_email ? { email: from_email } : {}),
+    ...rest,
+  };
+
   try {
     const response = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ access_key: accessKey, ...fields }),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
