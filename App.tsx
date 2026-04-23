@@ -425,7 +425,7 @@ const App: React.FC = () => {
               <ul className="space-y-4 opacity-70 text-sm">
                 <li><button onClick={() => navigateTo('blog')} className="hover:text-teal-400 transition-colors">Breeder Blog</button></li>
                 <li><button onClick={() => navigateTo('schedule')} className="hover:text-teal-400 transition-colors">Schedule</button></li>
-                <li><button onClick={() => navigateTo('admin')} className="text-teal-500 font-bold hover:text-teal-400 flex items-center gap-2 justify-center md:justify-start">
+                <li className="flex justify-center md:justify-start"><button onClick={() => navigateTo('admin')} className="text-teal-500 font-bold hover:text-teal-400 flex items-center gap-2">
                   Breeder Portal
                 </button></li>
               </ul>
