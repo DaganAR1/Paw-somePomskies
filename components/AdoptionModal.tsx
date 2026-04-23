@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { sendEmail } from '../services/emailService';
+import Turnstile from './Turnstile';
 
 interface AdoptionModalProps {
   logo: string;
@@ -10,24 +11,19 @@ interface AdoptionModalProps {
 }
 
 const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, initialPuppy }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    dogPreference: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', dogPreference: '' });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [captchaToken, setCaptchaToken] = useState('');
 
   useEffect(() => {
-    if (initialPuppy) {
-      setFormData(prev => ({ ...prev, dogPreference: initialPuppy }));
-    }
+    if (initialPuppy) setFormData(prev => ({ ...prev, dogPreference: initialPuppy }));
   }, [initialPuppy]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) { alert('Please complete the captcha.'); return; }
     setStatus('sending');
 
     const result = await sendEmail({
@@ -36,15 +32,11 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
       phone: formData.phone,
       interest: formData.dogPreference,
       subject: `Adoption Application for ${formData.dogPreference}`
-    });
+    }, captchaToken);
 
     if (result.success) {
       setStatus('success');
-      setTimeout(() => {
-        setStatus('idle');
-        onClose();
-        setFormData({ name: '', email: '', phone: '', dogPreference: '' });
-      }, 3000);
+      setTimeout(() => { setStatus('idle'); onClose(); setFormData({ name: '', email: '', phone: '', dogPreference: '' }); setCaptchaToken(''); }, 3000);
     } else {
       setStatus('error');
     }
@@ -56,12 +48,14 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
       <div className="relative bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
         <div className="bg-teal-600 px-8 py-6 text-white flex justify-between items-center">
           <div className="flex items-center gap-4">
-             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                <img src={logo} alt="Modal Logo" className="w-full h-full object-contain" />
-             </div>
-             <div><h2 className="text-2xl font-bold">Puppy Application</h2><p className="text-teal-100 text-sm opacity-80">Start your journey with Pawsome Pomsky</p></div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <img src={logo} alt="Modal Logo" className="w-full h-full object-contain" />
+            </div>
+            <div><h2 className="text-2xl font-bold">Puppy Application</h2><p className="text-teal-100 text-sm opacity-80">Start your journey with Pawsome Pomsky</p></div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
         <div className="p-8">
           {status === 'success' ? (
@@ -83,8 +77,9 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
                 <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Phone Number <span className="text-red-500">*</span></label><input required type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="(555) 000-0000" /></div>
               </div>
               <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">What dog are you looking for? <span className="text-red-500">*</span></label><textarea required rows={3} value={formData.dogPreference} onChange={(e) => setFormData({...formData, dogPreference: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="e.g. A blue-eyed female, Luna, or general waitlist..." /></div>
-              <div className="pt-4">
-                <button type="submit" disabled={status === 'sending'} className={`w-full py-4 text-white rounded-xl font-bold text-lg transition-all shadow-lg uppercase tracking-widest ${status === 'sending' ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500'}`}>
+              <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} theme="light" />
+              <div className="pt-2">
+                <button type="submit" disabled={status === 'sending' || !captchaToken} className={`w-full py-4 text-white rounded-xl font-bold text-lg transition-all shadow-lg uppercase tracking-widest ${status === 'sending' || !captchaToken ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500'}`}>
                   {status === 'sending' ? 'Sending...' : 'Submit Application'}
                 </button>
               </div>

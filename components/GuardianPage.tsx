@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { GuardianDog } from '../types';
 import { sendEmail } from '../services/emailService';
+import Turnstile from './Turnstile';
 
 interface GuardianPageProps {
   guardianDogs: GuardianDog[];
@@ -20,25 +21,28 @@ const GuardianPage: React.FC<GuardianPageProps> = ({ guardianDogs, heroImage, pr
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) { alert('Please complete the captcha.'); return; }
     setStatus('sending');
-    try {
-      await sendEmail({
-        from_name: formData.name,
-        from_email: formData.email,
-        phone: formData.phone,
-        location: formData.location,
-        interest: formData.dogInterest,
-        experience: formData.experience,
-        message: formData.message,
-        subject: `Guardian Home Inquiry: ${formData.dogInterest}`
-      });
+    const result = await sendEmail({
+      from_name: formData.name,
+      from_email: formData.email,
+      phone: formData.phone,
+      location: formData.location,
+      interest: formData.dogInterest,
+      experience: formData.experience,
+      message: formData.message,
+      subject: `Guardian Home Inquiry: ${formData.dogInterest}`
+    }, captchaToken);
+
+    if (result.success) {
       setStatus('success');
       setFormData({ name: '', email: '', phone: '', location: '', experience: '', dogInterest: '', message: '' });
-    } catch (error) {
-      console.error(error);
+      setCaptchaToken('');
+    } else {
       setStatus('error');
     }
   };
@@ -218,9 +222,10 @@ const GuardianPage: React.FC<GuardianPageProps> = ({ guardianDogs, heroImage, pr
               />
             </div>
 
-            <button 
-              disabled={status === 'sending'}
-              className="w-full py-6 bg-teal-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-teal-600/20 hover:bg-teal-500 transition-all disabled:opacity-50"
+            <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} theme="dark" />
+            <button
+              disabled={status === 'sending' || !captchaToken}
+              className={`w-full py-6 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl transition-all ${status === 'sending' || !captchaToken ? 'bg-slate-600 cursor-not-allowed opacity-50' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/20'}`}
             >
               {status === 'sending' ? 'Submitting...' : 'Submit Application'}
             </button>

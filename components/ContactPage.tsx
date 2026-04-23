@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BREEDER_CONTACT_EMAIL, SOCIAL_LINKS, BREEDER_PHONE } from '../constants';
 import { sendEmail } from '../services/emailService';
 import { Puppy } from '../types';
+import Turnstile from './Turnstile';
 
 interface ContactPageProps {
   onBackToHome: () => void;
@@ -10,16 +11,13 @@ interface ContactPageProps {
 }
 
 const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome, puppies = [] }) => {
-  const [status, setStatus] = useState<'idle' | 'sending' | 'success'>('idle');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    type: 'General Question',
-    message: ''
-  });
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [formData, setFormData] = useState({ name: '', email: '', type: 'General Question', message: '' });
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) { alert('Please complete the captcha.'); return; }
     setStatus('sending');
 
     const result = await sendEmail({
@@ -27,21 +25,14 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome, puppies = [] })
       from_email: formData.email,
       interest: formData.type,
       message: formData.message,
-      phone: '',
-      location: '',
-      experience: '',
       subject: `New Inquiry from ${formData.name} (Contact Page)`
-    });
+    }, captchaToken);
 
     if (result.success) {
       setStatus('success');
-      setTimeout(() => {
-        setStatus('idle');
-        setFormData({ name: '', email: '', type: 'General Question', message: '' });
-      }, 5000);
+      setTimeout(() => { setStatus('idle'); setFormData({ name: '', email: '', type: 'General Question', message: '' }); setCaptchaToken(''); }, 5000);
     } else {
-      setStatus('success'); // Still show success UI
-      console.error('Real email failed to send, probably config missing.');
+      setStatus('error');
     }
   };
 
@@ -132,11 +123,15 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBackToHome, puppies = [] })
                         placeholder="Tell us about your home and why you're looking for a Pomsky..."
                       ></textarea>
                     </div>
-                    <button 
+                    <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} theme="light" />
+                    {status === 'error' && (
+                      <p className="text-red-500 text-sm font-bold">Something went wrong. Please try again.</p>
+                    )}
+                    <button
                       type="submit"
-                      disabled={status === 'sending'}
+                      disabled={status === 'sending' || !captchaToken}
                       className={`w-full py-6 text-white rounded-2xl font-black uppercase tracking-[0.3em] text-xs transition-all shadow-xl ${
-                        status === 'sending' ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/20'
+                        status === 'sending' || !captchaToken ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/20'
                       }`}
                     >
                       {status === 'sending' ? 'Sending...' : 'Submit Inquiry'}

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { BREEDER_CONTACT_EMAIL } from '../constants';
 import { sendEmail } from '../services/emailService';
+import Turnstile from './Turnstile';
 
 interface WaitlistPageProps {
   onBackToHome: () => void;
@@ -9,6 +10,7 @@ interface WaitlistPageProps {
 
 const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [captchaToken, setCaptchaToken] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -23,6 +25,7 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) { alert('Please complete the captcha.'); return; }
     setStatus('submitting');
 
     const result = await sendEmail({
@@ -34,7 +37,7 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
       color_pref: formData.preference,
       home_details: formData.aboutHome,
       subject: `New Waitlist Application: ${formData.firstName} ${formData.lastName}`
-    });
+    }, captchaToken);
 
     if (result.success) {
       setStatus('success');
@@ -104,7 +107,10 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
                   <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3"><span className="w-1.5 h-8 bg-teal-600 rounded-full"></span>About Your Home</h3>
                   <div><label className="block text-xs font-black uppercase text-slate-400 mb-3 tracking-widest">About You</label><textarea required rows={4} value={formData.aboutHome} onChange={(e) => setFormData({...formData, aboutHome: e.target.value})} className="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Do you have other pets? Fenced yard?" /></div>
                 </div>
-                <div className="pt-10"><button type="submit" disabled={status === 'submitting'} className={`w-full py-8 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs transition-all shadow-2xl ${status === 'submitting' ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/30'}`}>{status === 'submitting' ? 'Sending...' : 'Submit Waitlist Application'}</button></div>
+                <div className="pt-4">
+                  <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} theme="light" />
+                </div>
+                <div className="pt-4"><button type="submit" disabled={status === 'submitting' || !captchaToken} className={`w-full py-8 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs transition-all shadow-2xl ${status === 'submitting' || !captchaToken ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/30'}`}>{status === 'submitting' ? 'Sending...' : 'Submit Waitlist Application'}</button></div>
               </form>
             </div>
           </div>

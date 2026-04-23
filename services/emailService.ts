@@ -1,15 +1,15 @@
 
-// Web3Forms access key — this is intentionally public (client-side only, read-only)
+// Web3Forms access key — intentionally public (client-side read-only key)
 const WEB3FORMS_KEY = '823082b6-a851-4a20-bcfe-701089118728';
 
-export async function sendEmail(fields: Record<string, any>) {
+export async function sendEmail(fields: Record<string, any>, captchaToken: string) {
   // Web3Forms requires the submitter email in a field named "email".
   // Our components send it as "from_email", so we remap it here.
   const { from_email, ...rest } = fields;
 
   const payload = {
     access_key: WEB3FORMS_KEY,
-    botcheck: '',   // honeypot — must be empty for spam protection
+    'cf-turnstile-response': captchaToken,
     ...(from_email ? { email: from_email } : {}),
     ...rest,
   };
