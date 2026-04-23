@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { GuardianDog } from '../types';
 import { sendEmail } from '../services/emailService';
-import Turnstile from './Turnstile';
 
 interface GuardianPageProps {
   guardianDogs: GuardianDog[];
@@ -21,11 +20,8 @@ const GuardianPage: React.FC<GuardianPageProps> = ({ guardianDogs, heroImage, pr
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-  const [captchaToken, setCaptchaToken] = useState('');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) { alert('Please complete the captcha.'); return; }
     setStatus('sending');
     const result = await sendEmail({
       from_name: formData.name,
@@ -36,12 +32,11 @@ const GuardianPage: React.FC<GuardianPageProps> = ({ guardianDogs, heroImage, pr
       experience: formData.experience,
       message: formData.message,
       subject: `Guardian Home Inquiry: ${formData.dogInterest}`
-    }, captchaToken);
+    });
 
     if (result.success) {
       setStatus('success');
       setFormData({ name: '', email: '', phone: '', location: '', experience: '', dogInterest: '', message: '' });
-      setCaptchaToken('');
     } else {
       setStatus('error');
     }
@@ -222,10 +217,9 @@ const GuardianPage: React.FC<GuardianPageProps> = ({ guardianDogs, heroImage, pr
               />
             </div>
 
-            <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} theme="dark" />
             <button
-              disabled={status === 'sending' || !captchaToken}
-              className={`w-full py-6 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl transition-all ${status === 'sending' || !captchaToken ? 'bg-slate-600 cursor-not-allowed opacity-50' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/20'}`}
+              disabled={status === 'sending'}
+              className={`w-full py-6 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl transition-all ${status === 'sending' ? 'bg-slate-600 cursor-not-allowed opacity-50' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-600/20'}`}
             >
               {status === 'sending' ? 'Submitting...' : 'Submit Application'}
             </button>
