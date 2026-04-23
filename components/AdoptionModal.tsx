@@ -16,7 +16,7 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
     phone: '',
     dogPreference: ''
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     if (initialPuppy) {
@@ -28,24 +28,26 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    await sendEmail({
+    setStatus('sending');
+
+    const result = await sendEmail({
       from_name: formData.name,
       from_email: formData.email,
       phone: formData.phone,
       interest: formData.dogPreference,
-      location: '',
-      experience: '',
-      message: '',
       subject: `Adoption Application for ${formData.dogPreference}`
     });
 
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-      setFormData({ name: '', email: '', phone: '', dogPreference: '' });
-    }, 3000);
+    if (result.success) {
+      setStatus('success');
+      setTimeout(() => {
+        setStatus('idle');
+        onClose();
+        setFormData({ name: '', email: '', phone: '', dogPreference: '' });
+      }, 3000);
+    } else {
+      setStatus('error');
+    }
   };
 
   return (
@@ -62,7 +64,7 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <div className="p-8">
-          {submitted ? (
+          {status === 'success' ? (
             <div className="py-12 text-center space-y-4">
               <div className="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6"><svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
               <h3 className="text-2xl font-bold text-slate-900">Application Received!</h3>
@@ -70,13 +72,22 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
+              {status === 'error' && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">
+                  Something went wrong. Please try again or contact us directly.
+                </div>
+              )}
               <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Full Name <span className="text-red-500">*</span></label><input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Enter your full name" /></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Email Address <span className="text-red-500">*</span></label><input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="john@example.com" /></div>
                 <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Phone Number <span className="text-red-500">*</span></label><input required type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="(555) 000-0000" /></div>
               </div>
               <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">What dog are you looking for? <span className="text-red-500">*</span></label><textarea required rows={3} value={formData.dogPreference} onChange={(e) => setFormData({...formData, dogPreference: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="e.g. A blue-eyed female, Luna, or general waitlist..." /></div>
-              <div className="pt-4"><button type="submit" className="w-full py-4 bg-teal-600 text-white rounded-xl font-bold text-lg hover:bg-teal-500 transition-all shadow-lg uppercase tracking-widest">Submit Application</button></div>
+              <div className="pt-4">
+                <button type="submit" disabled={status === 'sending'} className={`w-full py-4 text-white rounded-xl font-bold text-lg transition-all shadow-lg uppercase tracking-widest ${status === 'sending' ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500'}`}>
+                  {status === 'sending' ? 'Sending...' : 'Submit Application'}
+                </button>
+              </div>
             </form>
           )}
         </div>

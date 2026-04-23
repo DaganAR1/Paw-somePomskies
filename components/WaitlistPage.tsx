@@ -24,8 +24,8 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
-    
-    await sendEmail({
+
+    const result = await sendEmail({
       from_name: `${formData.firstName} ${formData.lastName}`,
       from_email: formData.email,
       phone: formData.phone,
@@ -35,11 +35,14 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBackToHome }) => {
       home_details: formData.aboutHome,
       subject: `New Waitlist Application: ${formData.firstName} ${formData.lastName}`
     });
-    
-    setTimeout(() => {
+
+    if (result.success) {
       setStatus('success');
       window.scrollTo(0, 0);
-    }, 1000);
+    } else {
+      setStatus('idle');
+      alert('Something went wrong submitting your application. Please try again or contact us directly.');
+    }
   };
 
   if (status === 'success') {
