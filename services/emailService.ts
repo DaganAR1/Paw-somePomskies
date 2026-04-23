@@ -1,6 +1,6 @@
 
 // Web3Forms access key — intentionally public (client-side read-only key)
-const WEB3FORMS_KEY = '823082b6-a851-4a20-bcfe-701089118728';
+const WEB3FORMS_KEY = '6a15e1cf-35f5-4717-8bf7-50f555e4a3ae';
 
 export async function sendEmail(fields: Record<string, any>, captchaToken: string) {
   const { from_email, ...rest } = fields;
