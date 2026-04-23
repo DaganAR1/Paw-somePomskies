@@ -1,32 +1,33 @@
 import React, { useEffect, useRef } from 'react';
 
-// Web3Forms shared Cloudflare Turnstile site key
-const TURNSTILE_SITE_KEY = '0x4AAAAAAAC3vh1zYhFtQMq1';
+// Web3Forms shared hCaptcha site key
+const HCAPTCHA_SITE_KEY = '50b2fe65-b00b-4b9e-ad62-3ba471098be7';
 
-interface TurnstileProps {
+interface CaptchaProps {
   onVerify: (token: string) => void;
   onExpire?: () => void;
-  theme?: 'light' | 'dark' | 'auto';
+  theme?: 'light' | 'dark';
 }
 
 declare global {
   interface Window {
-    turnstile: {
-      render: (container: HTMLElement, options: Record<string, any>) => string;
+    hcaptcha: {
+      render: (container: HTMLElement, params: Record<string, any>) => string;
       reset: (widgetId: string) => void;
+      execute: (widgetId: string) => void;
     };
   }
 }
 
-const Turnstile: React.FC<TurnstileProps> = ({ onVerify, onExpire, theme = 'auto' }) => {
+const Turnstile: React.FC<CaptchaProps> = ({ onVerify, onExpire, theme = 'light' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const renderWidget = () => {
-      if (containerRef.current && window.turnstile && !widgetIdRef.current) {
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: TURNSTILE_SITE_KEY,
+      if (containerRef.current && window.hcaptcha && widgetIdRef.current === null) {
+        widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
+          sitekey: HCAPTCHA_SITE_KEY,
           callback: onVerify,
           'expired-callback': () => {
             widgetIdRef.current = null;
@@ -37,13 +38,11 @@ const Turnstile: React.FC<TurnstileProps> = ({ onVerify, onExpire, theme = 'auto
       }
     };
 
-    // If Turnstile already loaded, render immediately
-    if (window.turnstile) {
+    if (window.hcaptcha) {
       renderWidget();
     } else {
-      // Otherwise wait for the script to load
       const interval = setInterval(() => {
-        if (window.turnstile) {
+        if (window.hcaptcha) {
           clearInterval(interval);
           renderWidget();
         }
