@@ -521,6 +521,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Name / Title</label>
                         <input className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all" value={formData.name || formData.title || formData.event || ''} onChange={e => setFormData({...formData, [activeTab === 'schedule' ? 'event' : activeTab === 'articles' ? 'title' : 'name']: e.target.value})} />
                       </div>
+                      {activeTab === 'schedule' && (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Expected Date</label>
+                            <input
+                              type="date"
+                              className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all text-white"
+                              value={formData.date && formData.date !== 'TBD' ? formData.date : ''}
+                              onChange={e => setFormData({...formData, date: e.target.value || 'TBD'})}
+                            />
+                            <p className="text-teal-700 text-[10px]">Leave blank to show "TBD"</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-teal-600">Season / Period</label>
+                            <input
+                              className="w-full px-6 py-4 bg-teal-950/50 border border-teal-800 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                              value={formData.period || ''}
+                              onChange={e => setFormData({...formData, period: e.target.value})}
+                              placeholder="e.g. Spring 2025"
+                            />
+                          </div>
+                        </>
+                      )}
                       {activeTab === 'articles' && (
                         <>
                           <div className="space-y-2">
