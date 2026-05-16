@@ -15,8 +15,8 @@ export const SOCIAL_LINKS = {
 
 export const SITE_ASSETS = {
   branding: {
-    logo: 'https://i.ibb.co/VWVhPqD/pawsome-texas-logo.png',
-    favicon: 'https://i.ibb.co/VWVhPqD/pawsome-texas-logo.png',
+    logo: '/logo.png',
+    favicon: '/favicon.png',
     goodDogBadge: 'https://images.gooddog.com/badges/breeder_badge_gold.png', 
   },
   sections: {
