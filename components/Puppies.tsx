@@ -4,13 +4,40 @@ import { Puppy } from '../types';
 
 interface PuppiesProps {
   puppies: Puppy[];
+  loaded: boolean;
   onOpenAdoption: (puppyName?: string) => void;
   onViewPuppy: (id: string) => void;
   onViewAll: () => void;
 }
 
-const Puppies: React.FC<PuppiesProps> = ({ puppies, onOpenAdoption, onViewPuppy, onViewAll }) => {
-  // Show only 3 puppies as a preview on home page
+const SkeletonCard: React.FC = () => (
+  <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100">
+    {/* Image area */}
+    <div className="h-80 bg-slate-200 animate-pulse" />
+    <div className="p-8">
+      {/* Name / gender / age row */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="space-y-2">
+          <div className="h-6 w-32 bg-slate-200 rounded-full animate-pulse" />
+          <div className="h-3 w-16 bg-slate-200 rounded-full animate-pulse" />
+        </div>
+        <div className="h-4 w-14 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+      {/* Description lines */}
+      <div className="space-y-2 mb-6">
+        <div className="h-3 w-full bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-4/5 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+      {/* Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-12 bg-slate-200 rounded-2xl animate-pulse" />
+        <div className="h-12 bg-teal-100 rounded-2xl animate-pulse" />
+      </div>
+    </div>
+  </div>
+);
+
+const Puppies: React.FC<PuppiesProps> = ({ puppies, loaded, onOpenAdoption, onViewPuppy, onViewAll }) => {
   const featuredPuppies = Array.isArray(puppies) ? puppies.slice(0, 3) : [];
 
   return (
@@ -23,7 +50,7 @@ const Puppies: React.FC<PuppiesProps> = ({ puppies, onOpenAdoption, onViewPuppy,
               Each puppy comes with a health guarantee, initial vaccinations, and a special puppy starter kit.
             </p>
           </div>
-          <button 
+          <button
             onClick={onViewAll}
             className="group flex items-center gap-2 text-teal-600 font-bold hover:text-teal-700 transition-colors uppercase tracking-widest text-sm"
           >
@@ -35,48 +62,56 @@ const Puppies: React.FC<PuppiesProps> = ({ puppies, onOpenAdoption, onViewPuppy,
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.isArray(puppies) && featuredPuppies.map((puppy) => (
-            <div key={puppy.id} className="group bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100 transition-all hover:-translate-y-2 hover:shadow-2xl">
-              <div className="relative h-80 overflow-hidden cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
-                <img 
-                  src={puppy.image} 
-                  alt={puppy.name} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                    puppy.status === 'Available' ? 'bg-green-500 text-white shadow-md' : 'bg-orange-500 text-white shadow-md'
-                  }`}>
-                    {puppy.status}
-                  </span>
-                </div>
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
-                  <div>
-                    <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{puppy.name}</h3>
-                    <p className="text-teal-600 font-bold text-xs uppercase tracking-widest mt-1">{puppy.gender}</p>
+          {!loaded ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : (
+            featuredPuppies.map((puppy) => (
+              <div key={puppy.id} className="group bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100 transition-all hover:-translate-y-2 hover:shadow-2xl">
+                <div className="relative h-80 overflow-hidden cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
+                  <img
+                    src={puppy.image}
+                    alt={puppy.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      puppy.status === 'Available' ? 'bg-green-500 text-white shadow-md' : 'bg-orange-500 text-white shadow-md'
+                    }`}>
+                      {puppy.status}
+                    </span>
                   </div>
-                  <span className="text-slate-400 font-bold">{puppy.age}</span>
                 </div>
-                <p className="text-slate-500 mb-6 text-sm line-clamp-2">{puppy.description}</p>
-                <div className="grid grid-cols-2 gap-3">
-                   <button 
-                    onClick={() => onViewPuppy(puppy.id)}
-                    className="py-4 rounded-2xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition-all uppercase tracking-widest text-[10px]"
-                  >
-                    View Details
-                  </button>
-                  <button 
-                    onClick={() => onOpenAdoption(puppy.name)}
-                    className="py-4 rounded-2xl bg-teal-600 text-white font-bold hover:bg-teal-500 transition-all uppercase tracking-widest text-[10px]"
-                  >
-                    Adopt Me
-                  </button>
+                <div className="p-8">
+                  <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => onViewPuppy(puppy.id)}>
+                    <div>
+                      <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{puppy.name}</h3>
+                      <p className="text-teal-600 font-bold text-xs uppercase tracking-widest mt-1">{puppy.gender}</p>
+                    </div>
+                    <span className="text-slate-400 font-bold">{puppy.age}</span>
+                  </div>
+                  <p className="text-slate-500 mb-6 text-sm line-clamp-2">{puppy.description}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => onViewPuppy(puppy.id)}
+                      className="py-4 rounded-2xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition-all uppercase tracking-widest text-[10px]"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => onOpenAdoption(puppy.name)}
+                      className="py-4 rounded-2xl bg-teal-600 text-white font-bold hover:bg-teal-500 transition-all uppercase tracking-widest text-[10px]"
+                    >
+                      Adopt Me
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </section>

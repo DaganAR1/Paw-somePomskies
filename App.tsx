@@ -303,11 +303,12 @@ const App: React.FC = () => {
               onNavigateAbout={() => navigateTo('about')}
             />
             <About />
-            <Puppies 
-              puppies={puppies} 
-              onOpenAdoption={(n) => { setAdoptionInquiryName(n); setIsAdoptionModalOpen(true); }} 
+            <Puppies
+              puppies={puppies}
+              loaded={isInitialLoadDone}
+              onOpenAdoption={(n) => { setAdoptionInquiryName(n); setIsAdoptionModalOpen(true); }}
               onViewPuppy={(id) => navigateTo('puppy-profile', id)}
-              onViewAll={() => navigateTo('puppies')} 
+              onViewAll={() => navigateTo('puppies')}
             />
             <Schedule schedule={schedule} onJoinWaitlist={() => navigateTo('waitlist')} />
             <BlogSection 
