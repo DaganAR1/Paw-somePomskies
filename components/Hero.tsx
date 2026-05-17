@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface HeroProps {
   logo: string;
@@ -9,14 +9,25 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ logo, backgroundImage, onOpenAdoption, onNavigateAbout }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Reset fade whenever the image source changes (e.g. Supabase delivers a new URL)
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [backgroundImage]);
+
   return (
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <img 
-          src={backgroundImage} 
-          className="w-full h-full object-cover"
-          alt="Adorable Pomsky"
-        />
+      {/* Background — solid dark teal while image is absent/loading, then fades in */}
+      <div className="absolute inset-0 z-0 bg-teal-950">
+        {backgroundImage && (
+          <img
+            src={backgroundImage}
+            className={`w-full h-full object-cover transition-opacity duration-1000 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            alt="Adorable Pomsky"
+            onLoad={() => setImageLoaded(true)}
+          />
+        )}
         <div className="absolute inset-0 section-overlay"></div>
       </div>
 
@@ -31,14 +42,14 @@ const Hero: React.FC<HeroProps> = ({ logo, backgroundImage, onOpenAdoption, onNa
           Specializing in healthy, socialized, and stunning Pomskies from champion lines in the heart of Texas.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
-          <button 
+          <button
             onClick={onOpenAdoption}
             className="bg-teal-500 hover:bg-teal-400 text-white px-12 py-5 rounded-full font-black text-sm uppercase tracking-widest transition-all shadow-2xl shadow-teal-600/40 hover:-translate-y-1 active:scale-95"
           >
             Adopt Today
           </button>
-          <button 
-            onClick={onNavigateAbout} 
+          <button
+            onClick={onNavigateAbout}
             className="bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/30 text-white px-12 py-5 rounded-full font-black text-sm uppercase tracking-widest transition-all active:scale-95"
           >
             Our Story

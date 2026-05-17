@@ -20,7 +20,7 @@ export const SITE_ASSETS = {
     goodDogBadge: 'https://images.gooddog.com/badges/breeder_badge_gold.png', 
   },
   sections: {
-    heroBackground: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=2000',
+    heroBackground: '',
     aboutMain: 'https://images.unsplash.com/photo-1593134257782-e89567b7718a?auto=format&fit=crop&q=80&w=1200',
     guardianHero: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=1200',
     guardianProgram: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=1200',
