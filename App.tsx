@@ -44,19 +44,42 @@ const App: React.FC = () => {
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [selectedPuppyId, setSelectedPuppyId] = useState<string | null>(null);
   
-  // -- GLOBAL STATE ENTITIES --
-  const [puppies, setPuppies] = useState<Puppy[]>([]);
-  const [parents, setParents] = useState<Parent[]>([]);
-  const [guardianDogs, setGuardianDogs] = useState<GuardianDog[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [siteAssets, setSiteAssets] = useState(DEFAULT_ASSETS);
+  // -- GLOBAL STATE ENTITIES (initialized from localStorage instantly, refreshed from Supabase in background) --
+  const [puppies, setPuppies] = useState<Puppy[]>(() => {
+    try { const s = localStorage.getItem('pawsome_puppies'); if (s) return JSON.parse(s); } catch {}
+    return INITIAL_PUPPIES;
+  });
+  const [parents, setParents] = useState<Parent[]>(() => {
+    try { const s = localStorage.getItem('pawsome_parents'); if (s) return JSON.parse(s); } catch {}
+    return INITIAL_PARENTS;
+  });
+  const [guardianDogs, setGuardianDogs] = useState<GuardianDog[]>(() => {
+    try { const s = localStorage.getItem('pawsome_guardian'); if (s) return JSON.parse(s); } catch {}
+    return INITIAL_GUARDIAN_DOGS;
+  });
+  const [schedule, setSchedule] = useState<ScheduleEvent[]>(() => {
+    try { const s = localStorage.getItem('pawsome_schedule'); if (s) return JSON.parse(s); } catch {}
+    return INITIAL_SCHEDULE;
+  });
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => {
+    try { const s = localStorage.getItem('pawsome_blogs'); if (s) return JSON.parse(s); } catch {}
+    return INITIAL_BLOG_POSTS;
+  });
+  const [siteAssets, setSiteAssets] = useState(() => {
+    try {
+      const s = localStorage.getItem('pawsome_assets');
+      if (s) {
+        const parsed = JSON.parse(s);
+        return { ...DEFAULT_ASSETS, ...parsed, branding: { ...DEFAULT_ASSETS.branding, ...(parsed.branding || {}) }, sections: { ...DEFAULT_ASSETS.sections, ...(parsed.sections || {}) }, emailConfig: { ...DEFAULT_ASSETS.emailConfig, ...(parsed.emailConfig || {}) } };
+      }
+    } catch {}
+    return DEFAULT_ASSETS;
+  });
 
   const [isAdoptionModalOpen, setIsAdoptionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adoptionInquiryName, setAdoptionInquiryName] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
   const [isDataSyncEnabled, setIsDataSyncEnabled] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'error'>('idle');
@@ -111,7 +134,7 @@ const App: React.FC = () => {
           dataService.getSiteAssets()
         ]);
 
-        // Set each entity independently, falling back to defaults if empty
+        // Silently update state with fresh Supabase data in the background
         setPuppies(p.length > 0 ? p : INITIAL_PUPPIES);
         setParents(par.length > 0 ? par : INITIAL_PARENTS);
         setGuardianDogs(g.length > 0 ? g : INITIAL_GUARDIAN_DOGS);
@@ -127,26 +150,12 @@ const App: React.FC = () => {
             emailConfig: { ...prev.emailConfig, ...(a.emailConfig || {}) }
           }));
         }
-        
-        // Only enable sync if we successfully loaded from Supabase
+
         setIsDataSyncEnabled(true);
       } catch (error) {
         console.error('Error loading data from Supabase:', error);
-        // Fallback to localStorage if Supabase fails, but DO NOT enable sync
-        const loadLocal = (key: string, setter: any, defaultVal: any) => {
-          const saved = localStorage.getItem(key);
-          if (saved) { try { setter(JSON.parse(saved)); } catch (e) { setter(defaultVal); } }
-          else { setter(defaultVal); }
-        };
-        loadLocal('pawsome_puppies', setPuppies, INITIAL_PUPPIES);
-        loadLocal('pawsome_parents', setParents, INITIAL_PARENTS);
-        loadLocal('pawsome_schedule', setSchedule, INITIAL_SCHEDULE);
-        loadLocal('pawsome_blogs', setBlogPosts, INITIAL_BLOG_POSTS);
-        loadLocal('pawsome_assets', setSiteAssets, DEFAULT_ASSETS);
-        
-        // We don't set isDataSyncEnabled to true here, so we won't overwrite Supabase with local data
+        // Data already loaded from localStorage at initialization — no action needed
       } finally {
-        setIsLoading(false);
         setIsInitialLoadDone(true);
       }
     };
@@ -269,17 +278,6 @@ const App: React.FC = () => {
 
   const selectedArticle = selectedArticleId ? blogPosts.find(p => p.id === selectedArticleId) : null;
   const selectedPuppy = selectedPuppyId ? puppies.find(p => p.id === selectedPuppyId) : null;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-teal-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-teal-400 font-black uppercase tracking-widest text-xs">Preparing your experience...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen relative flex flex-col">
