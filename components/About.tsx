@@ -1,20 +1,16 @@
 
 import React from 'react';
 
-interface AboutProps {
-  image: string;
-}
-
-const About: React.FC<AboutProps> = ({ image }) => {
+const About: React.FC = () => {
   return (
     <section id="about" className="py-24 bg-white">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-teal-100 rounded-full -z-10"></div>
-            <img 
-              src={image} 
-              alt="Breeder with puppy" 
+            <img
+              src="/about-main.jpg"
+              alt="Breeder with puppy"
               className="rounded-3xl shadow-2xl relative z-10 w-full h-auto object-cover"
             />
             <div className="absolute -bottom-8 -right-8 bg-teal-600 text-white p-8 rounded-2xl shadow-xl hidden md:block">

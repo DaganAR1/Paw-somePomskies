@@ -21,7 +21,7 @@ export const SITE_ASSETS = {
   },
   sections: {
     heroBackground: '',
-    aboutMain: 'https://images.unsplash.com/photo-1593134257782-e89567b7718a?auto=format&fit=crop&q=80&w=1200',
+    aboutMain: '',
     guardianHero: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=1200',
     guardianProgram: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=1200',
   },

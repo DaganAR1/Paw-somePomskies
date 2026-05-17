@@ -1,33 +1,21 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface HeroProps {
   logo: string;
-  backgroundImage: string;
   onOpenAdoption: () => void;
   onNavigateAbout: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ logo, backgroundImage, onOpenAdoption, onNavigateAbout }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  // Reset fade whenever the image source changes (e.g. Supabase delivers a new URL)
-  useEffect(() => {
-    setImageLoaded(false);
-  }, [backgroundImage]);
-
+const Hero: React.FC<HeroProps> = ({ logo, onOpenAdoption, onNavigateAbout }) => {
   return (
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Background — solid dark teal while image is absent/loading, then fades in */}
-      <div className="absolute inset-0 z-0 bg-teal-950">
-        {backgroundImage && (
-          <img
-            src={backgroundImage}
-            className={`w-full h-full object-cover transition-opacity duration-1000 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            alt="Adorable Pomsky"
-            onLoad={() => setImageLoaded(true)}
-          />
-        )}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/hero-bg.jpg"
+          className="w-full h-full object-cover"
+          alt="Adorable Pomsky puppies"
+        />
         <div className="absolute inset-0 section-overlay"></div>
       </div>
 

@@ -297,13 +297,12 @@ const App: React.FC = () => {
       <div className="flex-grow">
         {currentView === 'home' && (
           <main>
-            <Hero 
+            <Hero
               logo={siteAssets.branding.logo}
-              backgroundImage={siteAssets.sections.heroBackground}
-              onOpenAdoption={() => setIsAdoptionModalOpen(true)} 
+              onOpenAdoption={() => setIsAdoptionModalOpen(true)}
               onNavigateAbout={() => navigateTo('about')}
             />
-            <About image={siteAssets.sections.aboutMain} />
+            <About />
             <Puppies 
               puppies={puppies} 
               onOpenAdoption={(n) => { setAdoptionInquiryName(n); setIsAdoptionModalOpen(true); }} 
