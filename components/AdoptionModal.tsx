@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { sendEmail } from '../services/emailService';
+import TermsAgreement from './TermsAgreement';
+import { TERMS_EFFECTIVE_DATE } from './TermsPage';
 
 interface AdoptionModalProps {
   logo: string;
@@ -12,6 +14,7 @@ interface AdoptionModalProps {
 const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, initialPuppy }) => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', dogPreference: '' });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [agreed, setAgreed] = useState(false);
   useEffect(() => {
     if (initialPuppy) setFormData(prev => ({ ...prev, dogPreference: initialPuppy }));
   }, [initialPuppy]);
@@ -27,12 +30,13 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
       from_email: formData.email,
       phone: formData.phone,
       interest: formData.dogPreference,
+      terms_accepted: `Yes — Terms effective ${TERMS_EFFECTIVE_DATE}, accepted ${new Date().toISOString()}`,
       subject: `Adoption Application for ${formData.dogPreference}`
     });
 
     if (result.success) {
       setStatus('success');
-      setTimeout(() => { setStatus('idle'); onClose(); setFormData({ name: '', email: '', phone: '', dogPreference: '' }); }, 3000);
+      setTimeout(() => { setStatus('idle'); onClose(); setAgreed(false); setFormData({ name: '', email: '', phone: '', dogPreference: '' }); }, 3000);
     } else {
       setStatus('error');
     }
@@ -73,6 +77,7 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ logo, isOpen, onClose, in
                 <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Phone Number <span className="text-red-500">*</span></label><input required type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="(555) 000-0000" /></div>
               </div>
               <div><label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">What dog are you looking for? <span className="text-red-500">*</span></label><textarea required rows={3} value={formData.dogPreference} onChange={(e) => setFormData({...formData, dogPreference: e.target.value})} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="e.g. A blue-eyed female, Luna, or general waitlist..." /></div>
+              <TermsAgreement checked={agreed} onChange={setAgreed} />
               <div className="pt-2">
                 <button type="submit" disabled={status === 'sending'} className={`w-full py-4 text-white rounded-xl font-bold text-lg transition-all shadow-lg uppercase tracking-widest ${status === 'sending' ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-500'}`}>
                   {status === 'sending' ? 'Sending...' : 'Submit Application'}

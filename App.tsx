@@ -41,7 +41,7 @@ import { supabase } from './services/supabaseClient';
 type View = 'home' | 'puppies' | 'puppy-profile' | 'parents' | 'about' | 'schedule' | 'blog' | 'article' | 'contact' | 'admin' | 'waitlist' | 'guardian' | 'terms';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('home');
+  const [currentView, setCurrentView] = useState<View>(() => window.location.hash === '#terms' ? 'terms' : 'home');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [selectedPuppyId, setSelectedPuppyId] = useState<string | null>(null);
   
