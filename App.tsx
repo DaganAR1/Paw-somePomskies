@@ -20,6 +20,7 @@ import BlogPostPage from './components/BlogPostPage';
 import GuardianPage from './components/GuardianPage';
 import ContactPage from './components/ContactPage';
 import WaitlistPage from './components/WaitlistPage';
+import TermsPage from './components/TermsPage';
 import AdminLoginModal from './components/AdminLoginModal';
 import { 
   INITIAL_PUPPIES, 
@@ -37,7 +38,7 @@ import { dataService } from './services/dataService';
 
 import { supabase } from './services/supabaseClient';
 
-type View = 'home' | 'puppies' | 'puppy-profile' | 'parents' | 'about' | 'schedule' | 'blog' | 'article' | 'contact' | 'admin' | 'waitlist' | 'guardian';
+type View = 'home' | 'puppies' | 'puppy-profile' | 'parents' | 'about' | 'schedule' | 'blog' | 'article' | 'contact' | 'admin' | 'waitlist' | 'guardian' | 'terms';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -386,6 +387,7 @@ const App: React.FC = () => {
         {currentView === 'article' && selectedArticle && <BlogPostPage post={selectedArticle} onBackToBlog={() => navigateTo('blog')} />}
         {currentView === 'contact' && <ContactPage puppies={puppies} onBackToHome={() => navigateTo('home')} />}
         {currentView === 'waitlist' && <WaitlistPage onBackToHome={() => navigateTo('home')} />}
+        {currentView === 'terms' && <TermsPage onBackToHome={() => navigateTo('home')} />}
       </div>
 
       <footer className="bg-teal-950 text-white py-16">
@@ -449,7 +451,9 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="mt-16 pt-8 border-t border-teal-900 text-center opacity-40 text-[10px] uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} Paw-some Pomskies. Handcrafted for Excellence.
+            &copy; {new Date().getFullYear()} Paw-some Pomskies. All photos and content are protected by copyright.
+            <span className="mx-2">·</span>
+            <button onClick={() => navigateTo('terms')} className="uppercase tracking-widest hover:text-teal-400 hover:opacity-100 transition-colors underline">Terms &amp; Conditions</button>
           </div>
         </div>
       </footer>
