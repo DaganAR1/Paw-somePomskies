@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { LEGAL_ENTITY_NAME } from '../constants';
 
 interface TermsAgreementProps {
   checked: boolean;
@@ -18,7 +19,7 @@ const TermsAgreement: React.FC<TermsAgreementProps> = ({ checked, onChange }) =>
     <span>
       I am 18 or older and I have read and agree to the{' '}
       <a href="/#terms" target="_blank" rel="noopener noreferrer" className="text-teal-600 font-bold underline hover:text-teal-500">Terms &amp; Conditions</a>
-      , including the binding arbitration and class action waiver. <span className="text-red-500">*</span>
+      {' '}of {LEGAL_ENTITY_NAME}, including the binding arbitration and class action waiver. <span className="text-red-500">*</span>
     </span>
   </label>
 );

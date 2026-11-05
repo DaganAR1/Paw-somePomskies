@@ -2,6 +2,7 @@
 import { Puppy, Parent, ScheduleEvent, NavLink, BlogPost } from './types';
 
 export const BREEDER_CONTACT_EMAIL = 'pawsomepomskies@gmail.com';
+export const LEGAL_ENTITY_NAME = 'Paw-some Pomskies LLC';
 export const BREEDER_PHONE = '(214) 585-2519';
 
 export const SOCIAL_LINKS = {

@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { BREEDER_CONTACT_EMAIL, BREEDER_PHONE } from '../constants';
+import { BREEDER_CONTACT_EMAIL, BREEDER_PHONE, LEGAL_ENTITY_NAME } from '../constants';
 
 interface TermsPageProps {
   onBackToHome: () => void;
 }
 
-export const TERMS_EFFECTIVE_DATE = 'September 27, 2026';
+export const TERMS_EFFECTIVE_DATE = 'November 5, 2026';
 
 const sections: { title: string; body: React.ReactNode }[] = [
   {
@@ -14,7 +14,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          These Terms and Conditions ("Terms") are a legally binding agreement between you and Paw-some Pomskies ("we," "us," or "our") governing your access to and use of this website, our official social media pages, and any content, forms, or services offered through them (collectively, the "Site").
+          These Terms and Conditions ("Terms") are a legally binding agreement between you and {LEGAL_ENTITY_NAME}, a Texas limited liability company doing business as Paw-some Pomskies ("Paw-some Pomskies," "we," "us," or "our") governing your access to and use of this website, our official social media pages, and any content, forms, or services offered through them (collectively, the "Site").
         </p>
         <p>
           By accessing or using the Site, or by submitting any application, inquiry, or waitlist request, you confirm that you have read, understood, and agree to be bound by these Terms. If you do not agree, you must not use the Site. You must be at least 18 years old to submit an application or enter into any agreement with us.
@@ -29,7 +29,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: 'Ownership of Content',
     body: (
       <p>
-        All content on the Site — including all photographs, videos, and likenesses of our puppies, parent dogs, guardian dogs, and litters; our name, logo, and branding; and all text, graphics, page layouts, and designs (collectively, "Our Content") — is owned by or licensed to Paw-some Pomskies and is protected by United States and international copyright, trademark, and unfair competition laws. All rights not expressly granted to you in these Terms are reserved.
+        All content on the Site — including all photographs, videos, and likenesses of our puppies, parent dogs, guardian dogs, and litters; our name, logo, and branding; and all text, graphics, page layouts, and designs (collectively, "Our Content") — is owned by or licensed to {LEGAL_ENTITY_NAME} and is protected by United States and international copyright, trademark, and unfair competition laws. All rights not expressly granted to you in these Terms are reserved.
       </p>
     ),
   },
@@ -152,7 +152,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: 'Limitation of Liability',
     body: (
       <p className="uppercase text-sm">
-        To the fullest extent permitted by law, Paw-some Pomskies and its owners, family members, and agents will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of profits, data, or goodwill, arising out of or relating to the Site or these Terms, even if advised of the possibility of such damages. Our total liability for any claim arising out of or relating to the Site or these Terms will not exceed one hundred U.S. dollars ($100). Liability relating to the purchase of a puppy is governed solely by the signed sales contract. Some jurisdictions do not allow certain limitations, so some of these limitations may not apply to you.
+        To the fullest extent permitted by law, {LEGAL_ENTITY_NAME} and its members, managers, employees, family members, and agents will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of profits, data, or goodwill, arising out of or relating to the Site or these Terms, even if advised of the possibility of such damages. Our total liability for any claim arising out of or relating to the Site or these Terms will not exceed one hundred U.S. dollars ($100). Liability relating to the purchase of a puppy is governed solely by the signed sales contract. Some jurisdictions do not allow certain limitations, so some of these limitations may not apply to you.
       </p>
     ),
   },
@@ -160,7 +160,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: 'Indemnification',
     body: (
       <p>
-        You agree to defend, indemnify, and hold harmless Paw-some Pomskies and its owners, family members, and agents from any claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to your use of the Site, your violation of these Terms, your misuse of Our Content, or your violation of any law or the rights of any third party.
+        You agree to defend, indemnify, and hold harmless {LEGAL_ENTITY_NAME} and its members, managers, employees, family members, and agents from any claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to your use of the Site, your violation of these Terms, your misuse of Our Content, or your violation of any law or the rights of any third party.
       </p>
     ),
   },
@@ -178,6 +178,9 @@ const sections: { title: string; body: React.ReactNode }[] = [
           <strong>Class action and jury waiver.</strong> You and we each agree to bring claims only in an individual capacity and not as a plaintiff or class member in any class, collective, or representative proceeding, and each waives the right to a jury trial.
         </p>
         <p>
+          <strong>Claims against the company only.</strong> You agree that any claim arising out of or relating to the Site, these Terms, or any animal may be brought only against {LEGAL_ENTITY_NAME}, and not against any of its members, managers, employees, or their family members personally.
+        </p>
+        <p>
           <strong>Time limit.</strong> To the extent permitted by law, any claim relating to the Site must be brought within one (1) year after it arises, or it is permanently barred.
         </p>
       </>
@@ -187,7 +190,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: 'Governing Law & Venue',
     body: (
       <p>
-        These Terms are governed by the laws of the State of Texas and applicable federal law, without regard to conflict-of-law rules. For any matter not subject to arbitration, you consent to the exclusive jurisdiction and venue of the state and federal courts located in Dallas County, Texas.
+        These Terms are governed by the laws of the State of Texas and applicable federal law, without regard to conflict-of-law rules. For any matter not subject to arbitration, you consent to the exclusive jurisdiction and venue of the state and federal courts located in Collin County, Texas.
       </p>
     ),
   },
@@ -208,7 +211,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: 'Copyright Complaints & Contact',
     body: (
       <p>
-        To request permission to use our images, report misuse of Our Content, or ask any question about these Terms, contact us at{' '}
+        This Site is owned and operated by {LEGAL_ENTITY_NAME}, a Texas limited liability company based in Frisco, Texas. To request permission to use our images, report misuse of Our Content, or ask any question about these Terms, contact us at{' '}
         <a href={`mailto:${BREEDER_CONTACT_EMAIL}`} className="text-teal-600 font-bold hover:underline">{BREEDER_CONTACT_EMAIL}</a>{' '}
         or {BREEDER_PHONE}.
       </p>
@@ -239,7 +242,7 @@ const TermsPage: React.FC<TermsPageProps> = ({ onBackToHome }) => {
               </div>
             ))}
             <p className="pt-8 border-t border-slate-100 text-center text-xs uppercase tracking-widest text-slate-400 font-bold">
-              &copy; {new Date().getFullYear()} Paw-some Pomskies. All rights reserved.
+              &copy; {new Date().getFullYear()} {LEGAL_ENTITY_NAME}. All rights reserved.
             </p>
           </div>
         </div>

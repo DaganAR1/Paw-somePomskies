@@ -31,7 +31,8 @@ import {
   INITIAL_GUARDIAN_DOGS,
   SOCIAL_LINKS, 
   BREEDER_CONTACT_EMAIL,
-  BREEDER_PHONE
+  BREEDER_PHONE,
+  LEGAL_ENTITY_NAME
 } from './constants';
 import { Puppy, BlogPost, Parent, ScheduleEvent, GuardianDog } from './types';
 import { dataService } from './services/dataService';
@@ -451,7 +452,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="mt-16 pt-8 border-t border-teal-900 text-center opacity-40 text-[10px] uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} Paw-some Pomskies. All photos and content are protected by copyright.
+            &copy; {new Date().getFullYear()} {LEGAL_ENTITY_NAME}. All rights reserved. All photos and content are protected by copyright.
             <span className="mx-2">·</span>
             <button onClick={() => navigateTo('terms')} className="uppercase tracking-widest hover:text-teal-400 hover:opacity-100 transition-colors underline">Terms &amp; Conditions</button>
           </div>
